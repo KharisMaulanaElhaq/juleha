@@ -1,0 +1,538 @@
+/* DPD JULEHA Kabupaten Brebes - Custom Styles (Warm Violet & Warm Gold Theme) */
+:root {
+  --primary: #7248b8;
+  --primary-hover: #5f38a1;
+  --primary-light: #f5f0fb;
+  --accent: #d4a017;
+  --accent-hover: #b88910;
+  --accent-light: #fef8e7;
+  --hero-bg: #33204f;
+  --highlight: #cbb6fd;
+  --gradient: linear-gradient(135deg, #7248b8 0%, #5f38a1 100%);
+  --accent-gradient: linear-gradient(135deg, #d4a017 0%, #b88910 100%);
+  --hero-gradient: linear-gradient(135deg, #201335 0%, #33204f 55%, #4e2c77 100%);
+  --card-border: rgba(114, 72, 184, 0.12);
+}
+
+.dark {
+  --primary: #ad8df6;
+  --primary-hover: #cbb6fd;
+  --primary-light: rgba(173, 141, 246, 0.18);
+  --accent: #f0c24b;
+  --accent-hover: #f5cd68;
+  --accent-light: rgba(240, 194, 75, 0.18);
+  --hero-bg: #1c122b;
+  --highlight: #cbb6fd;
+  --gradient: linear-gradient(135deg, #7248b8 0%, #ad8df6 100%);
+  --accent-gradient: linear-gradient(135deg, #d4a017 0%, #f0c24b 100%);
+  --hero-gradient: linear-gradient(135deg, #11091a 0%, #1c122b 50%, #2e1840 100%);
+  --card-border: rgba(173, 141, 246, 0.22);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body, html {
+  max-width: 100%;
+  width: 100%;
+  overflow-x: hidden;
+  margin: 0;
+  padding: 0;
+}
+
+
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+.dark body {
+  color: #e2e8f0;
+  background: #0f0918;
+}
+
+.nav-link,
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Outfit', sans-serif;
+}
+
+/* Preloader */
+#preloader {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  background: #140b21;
+  transition: opacity 0.6s, visibility 0.6s;
+}
+
+#preloader.hidden {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.topbar {
+  background: #221438;
+}
+
+.dark .topbar {
+  background: #0d0714;
+}
+
+/* Navbar */
+#navbar {
+  transition: 0.4s;
+  backdrop-filter: blur(16px);
+}
+
+#navbar.scrolled {
+  background: rgba(255, 255, 255, 0.98) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+}
+
+.dark #navbar.scrolled {
+  background: rgba(28, 18, 43, 0.98) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+}
+
+.nav-link {
+  position: relative;
+  font-weight: 500;
+  transition: color 0.3s;
+}
+
+.nav-link::after {
+  content: "";
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: #7248b8;
+  transition: width 0.3s;
+  border-radius: 2px;
+}
+
+.dark .nav-link::after {
+  background: #ad8df6;
+}
+
+.nav-link:hover::after {
+  width: 100%;
+}
+
+/* Hero Section */
+.hero-section {
+  min-height: auto;
+  background: var(--hero-gradient);
+  position: relative;
+  overflow: hidden;
+}
+
+@media (min-width: 768px) {
+  .hero-section {
+    min-height: 85vh;
+  }
+}
+
+@media (min-width: 1024px) {
+  .hero-section {
+    min-height: 90vh;
+  }
+}
+
+.hero-section::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  pointer-events: none;
+  opacity: 0.35;
+}
+
+/* Badges & Buttons */
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 999px;
+  padding: 6px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  backdrop-filter: blur(8px);
+  font-family: 'Outfit', sans-serif;
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #fff;
+  background: var(--gradient);
+  padding: 13px 26px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: 'Outfit', sans-serif;
+  transition: all 0.3s ease;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 18px rgba(114, 72, 184, 0.35);
+  text-decoration: none;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(114, 72, 184, 0.45);
+}
+
+.btn-accent {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #1c122b;
+  background: var(--accent-gradient);
+  padding: 13px 26px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  font-family: 'Outfit', sans-serif;
+  transition: all 0.3s ease;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 18px rgba(212, 160, 23, 0.35);
+  text-decoration: none;
+}
+
+.btn-accent:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(212, 160, 23, 0.45);
+}
+
+.btn-outline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #fff;
+  background: transparent;
+  padding: 12px 26px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: 'Outfit', sans-serif;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.btn-outline:hover {
+  border-color: #fff;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.section-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #f5f0fb;
+  color: #7248b8;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: 'Outfit', sans-serif;
+  padding: 5px 14px;
+  border-radius: 999px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.dark .section-tag {
+  background: rgba(173, 141, 246, 0.18);
+  color: #ad8df6;
+}
+
+.section-tag-accent {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #fef8e7;
+  color: #a37205;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: 'Outfit', sans-serif;
+  padding: 5px 14px;
+  border-radius: 999px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.dark .section-tag-accent {
+  background: rgba(240, 194, 75, 0.18);
+  color: #f0c24b;
+}
+
+/* Card Styles */
+.card-juleha {
+  background: #fff;
+  border-radius: 16px;
+  padding: 28px;
+  border: 1px solid rgba(114, 72, 184, 0.08);
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 14px rgba(0, 0, 0, 0.04);
+}
+
+.card-juleha:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 16px 36px rgba(114, 72, 184, 0.12);
+  border-color: rgba(114, 72, 184, 0.25);
+}
+
+.dark .card-juleha {
+  background: #1c122b;
+  border-color: rgba(173, 141, 246, 0.15);
+}
+
+.dark .card-juleha:hover {
+  border-color: rgba(173, 141, 246, 0.35);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.35);
+}
+
+/* Blog / Berita Card */
+.berita-card {
+  background: #fff;
+  border-radius: 16px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.berita-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 32px rgba(114, 72, 184, 0.1);
+}
+
+.dark .berita-card {
+  background: #1c122b;
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+.section-padding {
+  padding: 44px 0;
+}
+
+@media (min-width: 768px) {
+  .section-padding {
+    padding: 88px 0;
+  }
+}
+
+/* FAQ Accordion */
+.faq-item {
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.dark .faq-item {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.faq-question {
+  cursor: pointer;
+  padding: 20px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 600;
+  font-size: 16px;
+  font-family: 'Outfit', sans-serif;
+  transition: color 0.3s;
+}
+
+.faq-question:hover {
+  color: #7248b8;
+}
+
+.dark .faq-question:hover {
+  color: #ad8df6;
+}
+
+.faq-answer {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s ease, padding 0.3s ease;
+  color: #64748b;
+  line-height: 1.7;
+  font-size: 15px;
+}
+
+.dark .faq-answer {
+  color: #94a3b8;
+}
+
+.faq-answer.open {
+  max-height: 350px;
+  padding-bottom: 20px;
+}
+
+.faq-icon {
+  transition: transform 0.3s;
+  flex-shrink: 0;
+}
+
+.faq-question.active .faq-icon {
+  transform: rotate(45deg);
+}
+
+/* Scroll Top */
+#scroll-top {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  width: 48px;
+  height: 48px;
+  background: var(--gradient);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 18px rgba(114, 72, 184, 0.4);
+  z-index: 100;
+  border: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: 0.3s;
+  cursor: pointer;
+}
+
+#scroll-top.visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+#scroll-top:hover {
+  transform: translateY(-3px) scale(1.05);
+}
+
+/* Mobile CTA */
+.mobile-cta {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 90;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.dark .mobile-cta {
+  background: rgba(28, 18, 43, 0.98);
+}
+
+@media (max-width: 768px) {
+  .mobile-cta {
+    display: block;
+  }
+}
+
+/* Forms */
+input:focus,
+select:focus,
+textarea:focus {
+  outline: 0;
+  border-color: #7248b8 !important;
+  box-shadow: 0 0 0 3px rgba(114, 72, 184, 0.15) !important;
+}
+
+.dark input:focus,
+.dark select:focus,
+.dark textarea:focus {
+  border-color: #ad8df6 !important;
+  box-shadow: 0 0 0 3px rgba(173, 141, 246, 0.25) !important;
+}
+
+/* Animations */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-float {
+  animation: float 5s ease-in-out infinite;
+}
+
+@keyframes spinSlow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spinSlow 18s linear infinite;
+}
+
+footer {
+  background: #190e29;
+}
+
+.dark footer {
+  background: #0d0714;
+}
+
+/* Custom Scrollbar */
+html {
+  scrollbar-color: #7248b8 #f1f5f9;
+}
+
+.dark {
+  scrollbar-color: #4e2c77 #0f0918;
+}
+
+::-webkit-scrollbar {
+  width: 9px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: #0f0918;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #7248b8;
+  border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #5f38a1;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #4e2c77;
+  border-radius: 6px;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #7248b8;
+}
+

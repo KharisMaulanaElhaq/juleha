@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="julehaGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1d5a41" />
+      <stop offset="100%" stop-color="#164632" />
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="16" fill="url(#julehaGrad)" />
+  <circle cx="32" cy="32" r="26" fill="none" stroke="#8a2f66" stroke-width="2.5" stroke-dasharray="3 3" />
+  <!-- Halal & Syar'i Emblem Silhouette -->
+  <path d="M32 14 L36 22 L45 23 L39 30 L41 39 L32 34 L23 39 L25 30 L19 23 L28 22 Z" fill="#ffffff" opacity="0.9" />
+  <circle cx="32" cy="32" r="8" fill="#8a2f66" />
+  <path d="M30 28 L34 32 L30 36" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

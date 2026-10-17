@@ -1,0 +1,203 @@
+@import 'tailwindcss';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../views/**/*.blade.php';
+@source '../js/**/*.js';
+
+@theme {
+    --color-brand: #7248b8;
+    --color-brand-hover: #5f38a1;
+    --color-brand-light: #f5f0fb;
+    --color-brand-dark: #ad8df6;
+    --color-brand-dark-hover: #cbb6fd;
+
+    --color-brand-hero: #33204f;
+    --color-brand-hero-dark: #1c122b;
+    --color-brand-highlight: #cbb6fd;
+
+    --color-brand-accent: #d4a017;
+    --color-brand-accent-hover: #b88910;
+    --color-brand-accent-light: #fef8e7;
+    --color-brand-dark-accent: #f0c24b;
+    --color-brand-dark-accent-hover: #f5cd68;
+
+    --color-juleha-primary: #7248b8;
+    --color-juleha-primary-dark: #5f38a1;
+    --color-juleha-accent: #d4a017;
+    --color-juleha-accent-dark: #b88910;
+    --color-juleha-dark-primary: #ad8df6;
+    --color-juleha-dark-accent: #f0c24b;
+
+    --font-sans: "Inter", sans-serif;
+    --font-heading: "Outfit", sans-serif;
+    --font-body: "Inter", sans-serif;
+}
+
+@layer components {
+    .btn {
+        @apply px-6 py-3 rounded-lg font-semibold bg-brand text-white hover:bg-brand-hover dark:bg-brand-dark dark:hover:bg-brand-dark-hover dark:text-slate-900 transition;
+    }
+
+    .container-custom {
+        @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+    }
+}
+
+@import './juleha.css';
+
+/* Aksesibilitas Pembesaran Teks Ramah Lansia */
+html.text-scale-large {
+    font-size: 115% !important;
+}
+
+html.text-scale-xlarge {
+    font-size: 130% !important;
+}
+
+/* ========================================================= */
+/* TOKEN WARNA PORTAL PESERTA (TERPUSAT DI CSS VARIABLES)   */
+/* ========================================================= */
+:root {
+    --bg: #f7f6fb;
+    --surface: #ffffff;
+    --surface-subtle: #f1eff8;
+    --border: #e6e2f0;
+    --text: #1f1933;
+    --text-muted: #5f5877;
+    --primary: #5a3d9e;
+    --primary-hover: #4a3185;
+    --on-primary: #ffffff;
+    --primary-soft: #efeafa;
+    --success-bg: #edf7f1;
+    --success-text: #1d6b45;
+    --warning-bg: #fbf5e6;
+    --warning-text: #7a5410;
+    --danger-bg: #fbeeee;
+    --danger-text: #9b2c2c;
+    --whatsapp: #1f7a4d;
+    --gold: #b8892b;
+    --card-shadow: 0 1px 2px rgba(31, 25, 51, 0.06), 0 8px 24px rgba(31, 25, 51, 0.05);
+}
+
+:where(.dark, .dark *) {
+    --bg: #14101f;
+    --surface: #1d1830;
+    --surface-subtle: #251f3b;
+    --border: #342c52;
+    --text: #efeaf9;
+    --text-muted: #b3a9cc;
+    --primary: #b9a2f0;
+    --primary-hover: #caaefa;
+    --on-primary: #1b1230;
+    --primary-soft: #2a2145;
+    --success-bg: #16281f;
+    --success-text: #8fd6af;
+    --warning-bg: #2a2210;
+    --warning-text: #e8cc85;
+    --danger-bg: #2d1618;
+    --danger-text: #f0a3a3;
+    --whatsapp: #1f7a4d;
+    --gold: #b8892b;
+    --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 24px rgba(0, 0, 0, 0.28);
+}
+
+.portal-bg {
+    background-color: var(--bg);
+}
+.portal-surface {
+    background-color: var(--surface);
+}
+.portal-surface-subtle {
+    background-color: var(--surface-subtle);
+}
+.portal-border {
+    border-color: var(--border);
+}
+.portal-text {
+    color: var(--text);
+}
+.portal-text-muted {
+    color: var(--text-muted);
+}
+.portal-card {
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    box-shadow: var(--card-shadow);
+    border-radius: 1rem;
+}
+.portal-btn-primary {
+    background-color: var(--primary);
+    color: var(--on-primary);
+    transition: all 0.15s ease-in-out;
+}
+.portal-btn-primary:hover {
+    background-color: var(--primary-hover);
+}
+.portal-btn-outline {
+    background-color: transparent;
+    border: 1px solid var(--primary);
+    color: var(--primary);
+    transition: all 0.15s ease-in-out;
+}
+.portal-btn-outline:hover {
+    background-color: var(--primary-soft);
+}
+.portal-btn-subtle {
+    background-color: var(--surface-subtle);
+    color: var(--text);
+    border: 1px solid var(--border);
+    transition: all 0.15s ease-in-out;
+}
+.portal-btn-subtle:hover {
+    background-color: var(--border);
+}
+.portal-btn-whatsapp {
+    background-color: var(--whatsapp);
+    color: #ffffff;
+    transition: all 0.15s ease-in-out;
+}
+.portal-btn-whatsapp:hover {
+    filter: brightness(1.08);
+}
+.portal-badge-neutral {
+    background-color: var(--surface-subtle);
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+}
+.portal-badge-success {
+    background-color: var(--success-bg);
+    color: var(--success-text);
+}
+.portal-badge-warning {
+    background-color: var(--warning-bg);
+    color: var(--warning-text);
+}
+.portal-badge-danger {
+    background-color: var(--danger-bg);
+    color: var(--danger-text);
+}
+.portal-icon-box {
+    background-color: var(--primary-soft);
+    color: var(--primary);
+}
+.portal-gold-accent {
+    border-top: 2px solid var(--gold);
+}
+.portal-header {
+    background-color: var(--surface);
+    border-bottom: 1px solid var(--border);
+}
+.portal-bottom-nav {
+    background-color: var(--surface);
+    border-top: 1px solid var(--border);
+    box-shadow: 0 -2px 12px rgba(31, 25, 51, 0.06);
+}
+footer.portal-footer {
+    background-color: var(--surface) !important;
+    border-top: 1px solid var(--border) !important;
+    color: var(--text-muted) !important;
+}
+
