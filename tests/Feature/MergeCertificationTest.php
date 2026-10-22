@@ -166,9 +166,9 @@ class MergeCertificationTest extends TestCase
         // Kolom partner_name (lsp_name) tetap kosong/null
         $this->assertNull($program->lsp_name);
 
-        // Deskripsi netral
+        // Deskripsi terkonfirmasi
         $this->assertStringContainsString(
-            'Fasilitasi uji kompetensi juru sembelih halal melalui lembaga sertifikasi mitra. Informasi lengkap akan diumumkan oleh DPD.',
+            'Uji kompetensi juru sembelih halal yang difasilitasi DPD JULEHA Kabupaten Brebes',
             $program->summary
         );
 
@@ -180,7 +180,7 @@ class MergeCertificationTest extends TestCase
         $detailResponse = $this->get('/program/sertifikasi-kompetensi-bnsp');
         $detailResponse->assertStatus(200);
         $detailResponse->assertSeeText('Sertifikasi Kompetensi BNSP');
-        $detailResponse->assertSeeText('Fasilitasi uji kompetensi juru sembelih halal melalui lembaga sertifikasi mitra');
+        $detailResponse->assertSeeText('Uji kompetensi juru sembelih halal yang difasilitasi DPD JULEHA Kabupaten Brebes');
         $detailResponse->assertSee('wa.me/');
     }
 }

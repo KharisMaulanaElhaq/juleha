@@ -41,18 +41,18 @@
 
             <div>
                 <h2 class="font-heading font-bold text-xl sm:text-2xl text-slate-800 dark:text-white border-b border-slate-200 dark:border-slate-800 pb-2">
-                    2. Dasar & Tujuan Pengumpulan NIK
+                    2. Penggunaan Data dan Penerusan ke Lembaga Sertifikasi
                 </h2>
                 <p class="mt-3">
-                    Pengumpulan Nomor Induk Kependudukan (NIK) dilakukan dengan dasar persetujuan eksplisit (consent) dari peserta dan digunakan semata-mata untuk:
+                    Data pribadi Anda dikumpulkan berdasarkan persetujuan yang Anda berikan saat melengkapi profil dan hanya digunakan untuk:
                 </p>
                 <ul class="list-disc pl-6 space-y-2 mt-2">
-                    <li>Penerbitan <strong>Sertifikat Bimbingan Teknis</strong> dan pelaporan administrasi ke instansi terkait.</li>
-                    <li>Fasilitasi pendaftaran asesmen dan penerbitan sertifikat pada <strong>Lembaga Sertifikasi Profesi (LSP) / BNSP</strong>.</li>
-                    <li>Mencegah duplikasi data kepesertaan ganda dalam satu angkatan kegiatan.</li>
+                    <li>Penerbitan sertifikat bimbingan teknis resmi dari DPD JULEHA Brebes.</li>
+                    <li>Penerusan data nama sesuai KTP, NIK, dan data kontak kepada lembaga sertifikasi resmi yaitu <strong>{{ setting('cert_issuer_name', 'LSP Pertanian RI') }}</strong> hanya untuk keperluan pendaftaran uji kompetensi dan penerbitan sertifikat.</li>
+                    <li>Pencatatan hasil sertifikasi oleh DPD JULEHA Brebes untuk keperluan verifikasi keabsahan juru sembelih di wilayah Kabupaten Brebes.</li>
                 </ul>
                 <div class="bg-amber-50 dark:bg-amber-950/30 p-4 rounded-xl border border-amber-200 dark:border-amber-800/50 text-xs text-amber-900 dark:text-amber-300 mt-3">
-                    <strong>Pemberitahuan Validasi:</strong> Sistem DPD JULEHA Brebes memvalidasi format matematis 16 digit NIK dan struktur tanggal lahir secara lokal. Sistem kami <em>tidak mengklaim dan tidak melakukan verifikasi langsung ke server basis data kependudukan Dukcapil</em>.
+                    <strong>Pemberitahuan:</strong> DPD JULEHA Brebes memvalidasi format NIK 16 angka demi ketepatan pencetakan sertifikat dan tidak menyalahgunakan data Anda untuk keperluan di luar sertifikasi.
                 </div>
             </div>
 
@@ -64,39 +64,37 @@
                     Kami memperlakukan NIK sebagai data pribadi sensitif dengan menerapkan pengamanan berlapis:
                 </p>
                 <ul class="list-disc pl-6 space-y-2 mt-2">
-                    <li><strong>Enkripsi Tingkat Database:</strong> Nilai NIK disimpan terenkripsi di database menggunakan algoritma kriptografi AES-256. NIK mentah tidak tersimpan dalam bentuk teks polos.</li>
-                    <li><strong>HMAC-SHA256 untuk Pencarian & Anti-Duplikasi:</strong> Pencegahan NIK ganda menggunakan digest hash HMAC-SHA256 dengan kunci rahasia terpisah (<code class="text-xs bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded">NIK_HASH_KEY</code>), bukan menyimpan NIK mentah.</li>
-                    <li><strong>Penyamaran (Masking):</strong> Di seluruh tampilan publik dan dashboard peserta, NIK ditampilkan secara tersamar (misal: <code class="text-xs bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded">3329********1234</code>).</li>
-                    <li><strong>Pengecualian Serialisasi & Log:</strong> NIK disembunyikan secara permanen dari serialisasi JSON/API, log aplikasi, laporan error sistem, dan notifikasi email.</li>
-                    <li><strong>Pencatatan Audit (Audit Trail):</strong> Setiap aksi pembukaan NIK lengkap oleh administrator di panel admin dicatat secara otomatis dalam tabel log audit (mencakup waktu, identitas administrator, target peserta, dan alamat IP).</li>
+                    <li><strong>Penyimpanan Terenkripsi:</strong> NIK Anda disimpan dalam kondisi terenkripsi di sistem basis data kami dan tidak dapat dibaca oleh pihak yang tidak berwenang.</li>
+                    <li><strong>Pencegahan Akun Ganda:</strong> Sistem menggunakan kode acak aman untuk memastikan satu NIK hanya dapat didaftarkan satu kali, tanpa membuka identitas mentah ke publik.</li>
+                    <li><strong>Penyamaran Tampilan:</strong> Nomor NIK Anda selalu disamarkan (misalnya: <code class="text-xs bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded">3329********1234</code>) pada layar dan tanda bukti keikutsertaan.</li>
                 </ul>
             </div>
 
             <div>
                 <h2 class="font-heading font-bold text-xl sm:text-2xl text-slate-800 dark:text-white border-b border-slate-200 dark:border-slate-800 pb-2">
-                    4. Pihak yang Memiliki Akses ke Data
+                    4. Pihak yang Menerima Data Anda
                 </h2>
                 <p class="mt-3">
-                    Akses terhadap data peserta diatur secara ketat berdasarkan prinsip kebutuhan wewenang:
+                    Kami menjaga amanah data Anda dengan sangat hati-hati:
                 </p>
                 <ul class="list-disc pl-6 space-y-2 mt-2">
-                    <li><strong>Super Admin & Admin Kegiatan DPD:</strong> Berhak meninjau pendaftaran dan membuka NIK demi pencetakan sertifikat (setiap pembukaan diaudit).</li>
-                    <li><strong>Editor Konten:</strong> <em>Dilarang keras</em> dan tidak memiliki hak akses melihat pendaftaran peserta maupun NIK.</li>
-                    <li><strong>Pihak Ketiga:</strong> DPD JULEHA Kabupaten Brebes <strong>tidak pernah</strong> menjual, menyewakan, atau memberikan data pribadi peserta kepada pihak komersial pihak ketiga manapun. Data hanya diteruskan ke LSP mitra terlisensi jika peserta mendaftar uji kompetensi sertifikasi resmi.</li>
+                    <li><strong>Pengurus DPD JULEHA Brebes:</strong> Petugas administrasi resmi yang bertugas memverifikasi kelayakan peserta dan mengurus administrasi pelatihan.</li>
+                    <li><strong>Lembaga Sertifikasi:</strong> Data nama sesuai KTP, NIK, dan kontak diteruskan kepada <strong>{{ setting('cert_issuer_name', 'LSP Pertanian RI') }}</strong> semata-mata untuk proses uji kompetensi dan penerbitan sertifikat profesi resmi.</li>
+                    <li><strong>Tidak Dijual ke Pihak Ketiga:</strong> DPD JULEHA Kabupaten Brebes tidak pernah dan tidak akan menjual, menyewakan, atau membagikan data Anda kepada pihak lain untuk tujuan iklan atau komersial.</li>
                 </ul>
             </div>
 
             <div>
                 <h2 class="font-heading font-bold text-xl sm:text-2xl text-slate-800 dark:text-white border-b border-slate-200 dark:border-slate-800 pb-2">
-                    5. Hak Peserta & Prosedur Penghapusan Data
+                    5. Hak Peserta Atas Data Pribadi
                 </h2>
                 <p class="mt-3">
-                    Sesuai dengan ketentuan Undang-Undang Perlindungan Data Pribadi (UU PDP), peserta memiliki hak untuk:
+                    Setiap peserta memiliki kendali penuh atas data miliknya dengan hak-hak sebagai berikut:
                 </p>
                 <ul class="list-disc pl-6 space-y-2 mt-2">
-                    <li>Melihat dan memperbarui profil kontak miliknya secara mandiri melalui menu <strong>Kelola Profil</strong> di dashboard.</li>
-                    <li>Mengajukan permohonan koreksi NIK apabila terjadi kesalahan pengetikan sebelum sertifikat resmi diterbitkan.</li>
-                    <li>Meminta penghapusan akun dan data pribadi dari basis data aktif dengan mengajukan permohonan tertulis kepada sekretariat DPD JULEHA Brebes melalui kontak resmi di bawah ini.</li>
+                    <li><strong>Hak Akses:</strong> Anda berhak melihat data pribadi Anda kapan saja melalui halaman Profil Peserta di portal ini.</li>
+                    <li><strong>Hak Koreksi:</strong> Anda berhak memperbaiki atau memperbarui nama, nomor kontak, maupun alamat jika ada kesalahan sebelum sertifikat resmi diterbitkan.</li>
+                    <li><strong>Hak Penghapusan:</strong> Anda berhak meminta penghapusan akun dan data pribadi dari sistem kami setelah kegiatan selesai atau jika Anda tidak lagi menjadi peserta, dengan menghubungi sekretariat DPD.</li>
                 </ul>
             </div>
 

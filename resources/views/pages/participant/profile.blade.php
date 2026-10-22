@@ -320,16 +320,23 @@
                             @endif
                         </div>
 
-                        <!-- Kotak Persetujuan Data Pribadi -->
-                        <div class="p-3.5 rounded-xl portal-surface-subtle border portal-border space-y-2">
+                        <!-- Kotak Persetujuan Data Pribadi & Penerusan Lembaga Sertifikasi -->
+                        <div id="persetujuan-data" class="p-4 rounded-xl portal-surface-subtle border {{ ($profile && ! $profile->hasCurrentConsent()) ? 'border-amber-400 dark:border-amber-600 bg-amber-50/50 dark:bg-amber-950/20' : 'portal-border' }} space-y-2">
                             <label class="flex items-start gap-3 cursor-pointer select-none">
                                 <input type="checkbox" id="consent" name="consent" value="1"
-                                       {{ old('consent', $profile->consent ?? false) ? 'checked' : '' }} required
-                                       class="w-4 h-4 mt-0.5 rounded text-[var(--primary)] focus:ring-[var(--primary)] border portal-border" />
-                                <span class="text-xs portal-text leading-relaxed">
-                                    <strong class="font-semibold">Pernyataan Kebenaran Data:</strong>
-                                    Saya menyatakan data di atas adalah benar dan menyetujui penggunaannya oleh DPD JULEHA Brebes untuk pencetakan sertifikat resmi.
-                                </span>
+                                       {{ old('consent', ($profile?->hasCurrentConsent() ?? false)) ? 'checked' : '' }} required
+                                       class="w-4 h-4 mt-1 rounded text-[var(--primary)] focus:ring-[var(--primary)] border portal-border shrink-0" />
+                                <div class="text-xs portal-text leading-relaxed space-y-1.5">
+                                    <div class="font-bold text-slate-800 dark:text-slate-200">
+                                        Pernyataan Persetujuan Penggunaan & Penerusan Data:
+                                    </div>
+                                    <p>
+                                        Saya menyatakan data identitas di atas adalah benar. Saya menyetujui data nama sesuai KTP, NIK, dan data kontak saya diteruskan kepada <strong>{{ setting('cert_issuer_name', 'LSP Pertanian RI') }}</strong> semata-mata untuk keperluan uji kompetensi dan penerbitan sertifikat resmi.
+                                    </p>
+                                    <p class="portal-text-muted text-[11px]">
+                                        Hasil sertifikasi dicatat oleh DPD JULEHA Brebes untuk keperluan verifikasi keabsahan. Saya memiliki hak untuk melihat (akses), memperbaiki (koreksi), maupun meminta penghapusan data pribadi saya sesuai ketentuan yang berlaku.
+                                    </p>
+                                </div>
                             </label>
                             @error('consent')
                                 <p class="text-xs text-rose-600 font-medium">{{ $message }}</p>

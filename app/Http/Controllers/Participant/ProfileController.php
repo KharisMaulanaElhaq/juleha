@@ -155,7 +155,11 @@ class ProfileController extends Controller
             ];
 
             if (! $isNikLocked) {
-                $rules['nik'] = ['required', 'string', new ValidNik];
+                if ($profile && filled($profile->nik)) {
+                    $rules['nik'] = ['nullable', 'string', new ValidNik];
+                } else {
+                    $rules['nik'] = ['required', 'string', new ValidNik];
+                }
             }
 
             $validated = $request->validate($rules, [
@@ -167,25 +171,28 @@ class ProfileController extends Controller
             $step2Data = [
                 'full_name_ktp' => trim($validated['full_name_ktp']),
                 'consent' => true,
+                'consent_version' => ParticipantProfile::CURRENT_CONSENT_VERSION,
                 'consent_at' => now(),
             ];
 
             if (! $isNikLocked && filled($validated['nik'] ?? null)) {
                 $rawNik = trim($validated['nik']);
-                $nikHash = ParticipantProfile::hashNik($rawNik);
+                if (! $profile || $profile->nik !== $rawNik) {
+                    $nikHash = ParticipantProfile::hashNik($rawNik);
 
-                $nikExists = ParticipantProfile::where('nik_hash', $nikHash)
-                    ->where('user_id', '!=', $user->id)
-                    ->exists();
+                    $nikExists = ParticipantProfile::where('nik_hash', $nikHash)
+                        ->where('user_id', '!=', $user->id)
+                        ->exists();
 
-                if ($nikExists) {
-                    return back()->withInput()->withErrors([
-                        'nik' => 'NIK ini sudah terdaftar pada akun peserta lain. Satu NIK hanya berlaku untuk satu akun resmi.',
-                    ]);
+                    if ($nikExists) {
+                        return back()->withInput()->withErrors([
+                            'nik' => 'NIK ini sudah terdaftar pada akun peserta lain. Satu NIK hanya berlaku untuk satu akun resmi.',
+                        ]);
+                    }
+
+                    $step2Data['nik'] = $rawNik;
+                    $step2Data['nik_hash'] = $nikHash;
                 }
-
-                $step2Data['nik'] = $rawNik;
-                $step2Data['nik_hash'] = $nikHash;
             }
 
             if ($profile) {
@@ -252,6 +259,7 @@ class ProfileController extends Controller
             'institution' => filled($validated['institution'] ?? null) ? trim($validated['institution']) : null,
             'status' => $validated['status'],
             'consent' => true,
+            'consent_version' => ParticipantProfile::CURRENT_CONSENT_VERSION,
             'consent_at' => now(),
         ];
 

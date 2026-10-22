@@ -138,8 +138,8 @@ class ProgramSeeder extends Seeder
                 'title' => 'Sertifikasi Kompetensi BNSP',
                 'slug' => 'sertifikasi-kompetensi-bnsp',
                 'category' => 'Pendidikan & Sertifikasi',
-                'summary' => 'Fasilitasi uji kompetensi juru sembelih halal melalui lembaga sertifikasi mitra. Informasi lengkap akan diumumkan oleh DPD.',
-                'description' => '<p>Fasilitasi uji kompetensi juru sembelih halal melalui lembaga sertifikasi mitra. Informasi lengkap akan diumumkan oleh DPD.</p>',
+                'summary' => 'Uji kompetensi juru sembelih halal yang difasilitasi DPD JULEHA Kabupaten Brebes. Sertifikat diterbitkan secara digital oleh LSP Pertanian RI dan berlaku 3 tahun sejak tanggal terbit.',
+                'description' => '<p>Uji kompetensi juru sembelih halal yang difasilitasi DPD JULEHA Kabupaten Brebes. Sertifikat diterbitkan secara digital oleh LSP Pertanian RI dan berlaku 3 tahun sejak tanggal terbit.</p><p>DPD memfasilitasi pelaksanaan, sedangkan penilaian kompetensi dan penerbitan sertifikat dilakukan oleh lembaga sertifikasi.</p>',
                 'icon' => 'badge-check',
                 'lsp_name' => null,
                 'features' => [
@@ -157,7 +157,7 @@ class ProgramSeeder extends Seeder
                 'sort_order' => 5,
                 'is_active' => true,
                 'meta_title' => 'Sertifikasi Kompetensi BNSP – DPD JULEHA Brebes',
-                'meta_description' => 'Fasilitasi uji kompetensi juru sembelih halal melalui lembaga sertifikasi mitra di Kabupaten Brebes.',
+                'meta_description' => 'Uji kompetensi juru sembelih halal yang difasilitasi DPD JULEHA Kabupaten Brebes bersama lembaga sertifikasi resmi.',
             ],
             [
                 'title' => 'Training of Trainer (TOT) Juleha',

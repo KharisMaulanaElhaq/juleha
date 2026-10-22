@@ -18,7 +18,18 @@
                         <i data-lucide="{{ $program->icon ?? 'award' }}" class="w-3.5 h-3.5 text-brand-highlight"></i>
                         {{ $program->category }}
                     </span>
-                    @if(!empty($program->lsp_name))
+                    @if($program->slug === 'sertifikasi-kompetensi-bnsp')
+                    <span class="inline-flex items-center gap-1.5 bg-amber-400/20 text-amber-200 border border-amber-300/30 text-xs font-semibold px-3 py-1.5 rounded-full">
+                        <i data-lucide="shield-check" class="w-3.5 h-3.5 text-amber-300"></i>
+                        {{ setting('cert_issuer_name', 'LSP Pertanian RI') }}
+                    </span>
+                    @if(filled(setting('cert_issuer_license')))
+                    <span class="inline-flex items-center gap-1.5 bg-blue-400/20 text-blue-200 border border-blue-300/30 text-xs font-semibold px-3 py-1.5 rounded-full">
+                        <i data-lucide="award" class="w-3.5 h-3.5 text-blue-300"></i>
+                        Lisensi: {{ setting('cert_issuer_license') }}
+                    </span>
+                    @endif
+                    @elseif(!empty($program->lsp_name))
                     <span class="inline-flex items-center gap-1.5 bg-amber-400/20 text-amber-200 border border-amber-300/30 text-xs font-semibold px-3 py-1.5 rounded-full">
                         <i data-lucide="shield-check" class="w-3.5 h-3.5 text-amber-300"></i>
                         {{ $program->lsp_name }}
@@ -30,9 +41,15 @@
                     {{ $program->title }}
                 </h1>
 
+                @if($program->slug === 'sertifikasi-kompetensi-bnsp')
+                <p class="text-slate-200 text-base sm:text-lg leading-relaxed mb-8 max-w-2xl" data-aos="fade-up" data-aos-delay="200">
+                    Uji kompetensi juru sembelih halal yang difasilitasi DPD JULEHA Kabupaten Brebes. Sertifikat diterbitkan secara {{ setting('cert_form_note', 'digital') }} oleh {{ setting('cert_issuer_name', 'LSP Pertanian RI') }} dan berlaku {{ setting('cert_validity_years', 3) }} tahun sejak tanggal terbit.
+                </p>
+                @else
                 <p class="text-slate-200 text-base sm:text-lg leading-relaxed mb-8 max-w-2xl" data-aos="fade-up" data-aos-delay="200">
                     {{ $program->summary }}
                 </p>
+                @endif
 
                 <div class="flex flex-wrap items-center gap-4" data-aos="fade-up" data-aos-delay="300">
                     @if($program->cta_type === 'bimtek')
@@ -95,10 +112,72 @@
                         <span>Penjelasan Lengkap Program</span>
                     </h2>
 
+                    @if($program->slug === 'sertifikasi-kompetensi-bnsp')
+                    <div class="p-4 rounded-xl bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900/60 text-blue-900 dark:text-blue-200 text-sm leading-relaxed mb-6 flex items-start gap-3">
+                        <i data-lucide="info" class="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5"></i>
+                        <div>
+                            DPD JULEHA Kabupaten Brebes memfasilitasi pelaksanaan kegiatan, sedangkan penilaian kompetensi dan penerbitan sertifikat dilakukan oleh lembaga sertifikasi ({{ setting('cert_issuer_name', 'LSP Pertanian RI') }}).
+                        </div>
+                    </div>
+                    @endif
+
                     <div class="prose prose-slate dark:prose-invert max-w-none text-slate-700 dark:text-slate-300 text-base leading-relaxed space-y-4">
                         {!! $program->description !!}
                     </div>
                 </div>
+
+                @if($program->slug === 'sertifikasi-kompetensi-bnsp')
+                <!-- Syarat Peserta & Biaya Sertifikasi -->
+                <div class="grid sm:grid-cols-2 gap-6" data-aos="fade-up">
+                    <!-- Syarat Peserta -->
+                    <div class="bg-white dark:bg-slate-800/60 rounded-2xl border border-gray-100 dark:border-slate-800 p-6 sm:p-7 shadow-soft flex flex-col justify-between">
+                        <div>
+                            <h3 class="font-heading font-bold text-xl text-slate-900 dark:text-white mb-3 flex items-center gap-2.5">
+                                <i data-lucide="clipboard-list" class="w-6 h-6 text-brand dark:text-brand-dark"></i>
+                                <span>Syarat Peserta</span>
+                            </h3>
+                            <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60 mb-3">
+                                <i data-lucide="clock" class="w-3.5 h-3.5"></i>
+                                <span>Akan diumumkan oleh DPD</span>
+                            </div>
+                            <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
+                                Persyaratan peserta dan kelengkapan berkas uji kompetensi akan diumumkan oleh DPD.
+                            </p>
+                        </div>
+                        <div class="mt-6 pt-4 border-t border-gray-100 dark:border-slate-700/60">
+                            <a href="{{ setting_wa_link('Halo Panitia DPD JULEHA Brebes, saya ingin bertanya tentang syarat peserta Sertifikasi Kompetensi BNSP.') }}" target="_blank" rel="noopener noreferrer"
+                               class="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-xs sm:text-sm transition shadow-sm w-full">
+                                <i data-lucide="message-circle" class="w-4 h-4"></i>
+                                <span>Tanya panitia via WhatsApp</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Biaya Sertifikasi -->
+                    <div class="bg-white dark:bg-slate-800/60 rounded-2xl border border-gray-100 dark:border-slate-800 p-6 sm:p-7 shadow-soft flex flex-col justify-between">
+                        <div>
+                            <h3 class="font-heading font-bold text-xl text-slate-900 dark:text-white mb-3 flex items-center gap-2.5">
+                                <i data-lucide="credit-card" class="w-6 h-6 text-brand dark:text-brand-dark"></i>
+                                <span>Biaya</span>
+                            </h3>
+                            <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60 mb-3">
+                                <i data-lucide="clock" class="w-3.5 h-3.5"></i>
+                                <span>Akan diumumkan oleh DPD</span>
+                            </div>
+                            <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
+                                Rincian biaya uji kompetensi dan penerbitan sertifikat digital BNSP akan diumumkan oleh DPD.
+                            </p>
+                        </div>
+                        <div class="mt-6 pt-4 border-t border-gray-100 dark:border-slate-700/60">
+                            <a href="{{ setting_wa_link('Halo Panitia DPD JULEHA Brebes, saya ingin bertanya tentang biaya Sertifikasi Kompetensi BNSP.') }}" target="_blank" rel="noopener noreferrer"
+                               class="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-xs sm:text-sm transition shadow-sm w-full">
+                                <i data-lucide="message-circle" class="w-4 h-4"></i>
+                                <span>Tanya panitia via WhatsApp</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                @endif
 
                 <!-- Keunggulan / Cakupan Fitur -->
                 @if(!empty($program->features))
@@ -120,8 +199,8 @@
                 </div>
                 @endif
 
-                <!-- Persyaratan Mengikuti (Hanya tampil jika ada isinya) -->
-                @if(!empty($program->requirements))
+                <!-- Persyaratan Mengikuti (Hanya tampil jika ada isinya dan bukan sertifikasi khusus di atas) -->
+                @if($program->slug !== 'sertifikasi-kompetensi-bnsp' && !empty($program->requirements))
                 <div class="bg-white dark:bg-slate-800/60 rounded-2xl border border-gray-100 dark:border-slate-800 p-6 sm:p-8 shadow-soft" data-aos="fade-up">
                     <h3 class="font-heading font-bold text-xl text-slate-900 dark:text-white mb-6 flex items-center gap-2.5">
                         <i data-lucide="clipboard-list" class="w-6 h-6 text-brand dark:text-brand-dark"></i>

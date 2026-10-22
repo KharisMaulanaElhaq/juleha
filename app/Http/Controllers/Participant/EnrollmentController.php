@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Participant;
 
+use App\Enums\EventType;
 use App\Http\Controllers\Controller;
 use App\Models\Enrollment;
 use App\Models\Event;
@@ -48,6 +49,14 @@ class EnrollmentController extends Controller
             session(['url.intended' => route('enrollment.create', $event->slug)]);
 
             return redirect()->route('participant.profile')->with('info', 'Nomor Induk Kependudukan (NIK) dan data profil wajib dilengkapi sebelum mendaftar kegiatan, karena digunakan untuk penerbitan sertifikat.');
+        }
+
+        // Validasi pembaruan persetujuan data untuk sertifikasi kompetensi
+        if ($event->type === EventType::SertifikasiKompetensi && ! $profile->hasCurrentConsent()) {
+            session(['url.intended' => route('enrollment.create', $event->slug)]);
+
+            return redirect()->route('participant.profile', ['step' => 2])
+                ->with('info', 'Pendaftaran uji sertifikasi kompetensi memerlukan pembaruan persetujuan data ke '.setting('cert_issuer_name', 'LSP Pertanian RI').'. Silakan perbarui persetujuan data Anda.');
         }
 
         // Cek jika sudah terdaftar

@@ -28,6 +28,7 @@ class FaqForm
                                     'Bimbingan Teknis' => 'Bimbingan Teknis & Pelatihan',
                                     'Fiqih Sembelih' => 'Fiqih Sembelih & Syariat',
                                     'Kurban & Jasa' => 'Kurban & Jasa Penyembelihan',
+                                    'Sertifikasi BNSP' => 'Sertifikasi Kompetensi BNSP',
                                 ])
                                 ->helperText('Kelompokkan pertanyaan ke dalam topik yang relevan.')
                                 ->default('Umum & Organisasi')

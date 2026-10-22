@@ -10,6 +10,11 @@ class ParticipantProfile extends Model
 {
     use HasFactory;
 
+    /**
+     * Versi dokumen persetujuan data sertifikasi kompetensi terbaru.
+     */
+    public const CURRENT_CONSENT_VERSION = 'v2_sertifikasi_lsp';
+
     protected $fillable = [
         'user_id',
         'phone',
@@ -21,8 +26,17 @@ class ParticipantProfile extends Model
         'institution',
         'status',
         'consent',
+        'consent_version',
         'consent_at',
     ];
+
+    /**
+     * Periksa apakah peserta telah menyetujui versi persetujuan data terbaru.
+     */
+    public function hasCurrentConsent(): bool
+    {
+        return (bool) $this->consent && $this->consent_version === self::CURRENT_CONSENT_VERSION;
+    }
 
     /**
      * Kolom NIK dan NIK hash disembunyikan secara permanen dari serialisasi JSON/Array.

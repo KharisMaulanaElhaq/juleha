@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\EnrollmentStatus;
 use App\Enums\EventRegistrationState;
+use App\Enums\EventType;
 use App\Mail\NewEnrollmentAdminNotification;
 use App\Models\AuditLog;
 use App\Models\Enrollment;
@@ -33,6 +34,11 @@ class EnrollmentService
         $profile = $user->profile;
         if (! $profile || empty($profile->nik)) {
             throw new DomainException('Nomor Induk Kependudukan (NIK) dan data profil wajib dilengkapi terlebih dahulu.');
+        }
+
+        // 2b. Validasi persetujuan pembaruan data untuk kegiatan sertifikasi kompetensi
+        if ($event->type === EventType::SertifikasiKompetensi && ! $profile->hasCurrentConsent()) {
+            throw new DomainException('Pendaftaran uji sertifikasi kompetensi memerlukan pembaruan persetujuan penerusan data ke lembaga sertifikasi. Silakan perbarui persetujuan data pada profil Anda.');
         }
 
         return DB::transaction(function () use ($user, $event) {

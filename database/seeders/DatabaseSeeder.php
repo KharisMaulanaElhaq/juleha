@@ -36,6 +36,9 @@ class DatabaseSeeder extends Seeder
             'counter_bimtek' => '12',
             'counter_districts' => '17',
             'counter_rph' => '8',
+            'cert_issuer_name' => 'LSP Pertanian RI',
+            'cert_validity_years' => '3',
+            'cert_form_note' => 'digital',
         ];
 
         foreach ($settings as $key => $val) {
@@ -284,5 +287,24 @@ class DatabaseSeeder extends Seeder
                 $f
             );
         }
+
+        // FAQ Sertifikasi BNSP (Idempoten & tidak menimpa suntingan admin)
+        Faq::firstOrCreate(
+            ['question' => 'Siapa yang menerbitkan sertifikat?'],
+            [
+                'category' => 'Sertifikasi BNSP',
+                'answer' => 'Sertifikat kompetensi diterbitkan secara resmi oleh {cert_issuer_name} sebagai lembaga sertifikasi profesi yang berwenang, sedangkan DPD JULEHA Kabupaten Brebes bertindak memfasilitasi pelaksanaan kegiatan.',
+                'sort_order' => 5,
+            ]
+        );
+
+        Faq::firstOrCreate(
+            ['question' => 'Berapa lama sertifikat berlaku dan apa bentuknya?'],
+            [
+                'category' => 'Sertifikasi BNSP',
+                'answer' => 'Sertifikat kompetensi BNSP berlaku selama {cert_validity_years} tahun sejak tanggal terbit dan diterbitkan dalam bentuk {cert_form_note}.',
+                'sort_order' => 6,
+            ]
+        );
     }
 }

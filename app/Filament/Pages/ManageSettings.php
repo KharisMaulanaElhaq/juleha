@@ -134,6 +134,11 @@ class ManageSettings extends Page implements HasForms
 
             'board_period' => $allSettings['board_period'] ?? '2024-2029',
             'board_sk_note' => $allSettings['board_sk_note'] ?? '',
+
+            'cert_issuer_name' => $allSettings['cert_issuer_name'] ?? 'LSP Pertanian RI',
+            'cert_issuer_license' => $allSettings['cert_issuer_license'] ?? '',
+            'cert_validity_years' => (string) ($allSettings['cert_validity_years'] ?? '3'),
+            'cert_form_note' => $allSettings['cert_form_note'] ?? 'digital',
         ]);
     }
 
@@ -361,6 +366,44 @@ class ManageSettings extends Page implements HasForms
                                             ->default(false),
                                     ]),
                             ]),
+
+                        // Tab 6: Sertifikasi BNSP
+                        Tab::make('Sertifikasi')
+                            ->icon('heroicon-o-academic-cap')
+                            ->schema([
+                                Section::make('Pengaturan Sertifikasi Kompetensi BNSP')
+                                    ->description('Informasi lembaga sertifikasi, lisensi, dan masa berlaku sertifikat yang digunakan pada halaman program dan dokumen persetujuan data.')
+                                    ->icon('heroicon-o-document-check')
+                                    ->columns(2)
+                                    ->schema([
+                                        TextInput::make('cert_issuer_name')
+                                            ->label('Nama Lembaga Penerbit Sertifikat (LSP)')
+                                            ->required()
+                                            ->placeholder('LSP Pertanian RI')
+                                            ->helperText('Tulis nama resmi sesuai dokumen lisensi.')
+                                            ->columnSpan(1),
+
+                                        TextInput::make('cert_issuer_license')
+                                            ->label('Nomor Lisensi LSP (Opsional)')
+                                            ->placeholder('Contoh: BNSP-LSP-xxx-ID')
+                                            ->helperText('Nomor lisensi resmi LSP dari BNSP. Tampil hanya jika diisi.')
+                                            ->columnSpan(1),
+
+                                        TextInput::make('cert_validity_years')
+                                            ->label('Masa Berlaku Sertifikat (Tahun)')
+                                            ->numeric()
+                                            ->required()
+                                            ->default(3)
+                                            ->helperText('Masa berlaku sertifikat kompetensi BNSP dalam hitungan tahun (default 3 tahun).')
+                                            ->columnSpan(1),
+
+                                        TextInput::make('cert_form_note')
+                                            ->label('Bentuk / Format Sertifikat (Opsional)')
+                                            ->placeholder('digital')
+                                            ->helperText('Bentuk terbitan sertifikat (contoh: digital).')
+                                            ->columnSpan(1),
+                                    ]),
+                            ]),
                     ]),
             ]);
     }
@@ -470,6 +513,12 @@ class ManageSettings extends Page implements HasForms
         // 7. Simpan Pengaturan Struktur Pengurus
         Setting::set('board_period', trim($state['board_period'] ?? '2024-2029'), 'profile');
         Setting::set('board_sk_note', trim($state['board_sk_note'] ?? ''), 'profile');
+
+        // 8. Simpan Pengaturan Sertifikasi BNSP
+        Setting::set('cert_issuer_name', trim($state['cert_issuer_name'] ?? 'LSP Pertanian RI'), 'certification');
+        Setting::set('cert_issuer_license', trim($state['cert_issuer_license'] ?? ''), 'certification');
+        Setting::set('cert_validity_years', (string) ($state['cert_validity_years'] ?? '3'), 'certification');
+        Setting::set('cert_form_note', trim($state['cert_form_note'] ?? 'digital'), 'certification');
 
         $this->rememberData();
         Setting::clearCache();

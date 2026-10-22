@@ -38,6 +38,11 @@
                 'bimtek' => 'Bimbingan Teknis & Pelatihan',
                 'fiqih' => 'Fiqih & Praktik Penyembelihan',
                 'sertifikasi' => 'Sertifikasi Kompetensi BNSP & Kemitraan Masjid',
+                'Sertifikasi BNSP' => 'Sertifikasi Kompetensi BNSP',
+                'Umum & Organisasi' => 'Umum & Keorganisasian',
+                'Bimbingan Teknis' => 'Bimbingan Teknis & Pelatihan',
+                'Fiqih Sembelih' => 'Fiqih & Praktik Penyembelihan',
+                'Kurban & Jasa' => 'Kurban & Jasa Penyembelihan',
             ];
         @endphp
 
