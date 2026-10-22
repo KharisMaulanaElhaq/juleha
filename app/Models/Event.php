@@ -89,6 +89,11 @@ class Event extends Model
         return $this->hasMany(GalleryItem::class);
     }
 
+    public function certificates(): HasMany
+    {
+        return $this->hasMany(Certificate::class);
+    }
+
     public function effectiveEndsAt(): ?Carbon
     {
         if ($this->ends_at) {

@@ -308,17 +308,20 @@ Hal yang tetap berlaku untuk template gratis:
 
 ## 13. Pertanyaan terbuka
 
-1. **Penerbit dan LSP Mitra Sertifikasi Kompetensi BNSP:** siapa nama lembaga sertifikasi profesi (LSP) mitra, siapa asesornya, serta bentuk dan masa berlaku sertifikat? (Perbedaan Sertifikasi Kompetensi dan BNSP telah diselesaikan karena keduanya merupakan satu program; detail LSP mitra menunggu kepastian resmi DPD).
-2. **Instruktur BNSP:** apakah anggota DPD yang memegang sertifikat instruktur/asesor, atau program penyaluran?
-3. **Field di sertifikat:** apa yang harus tercetak (nama sesuai KTP, NIK, tempat/tanggal lahir, nomor sertifikat, tanggal terbit)? Apakah ada batas kehadiran minimum?
-4. **Login:** Google saja, atau tetap menyediakan email+password sebagai cadangan untuk peserta yang tidak punya akun Google?
+Pertanyaan terbuka yang **telah terjawab**:
+- **Penerbit sertifikat:** LSP Pertanian RI (dikonfigurasi dinamis lewat pengaturan `cert_issuer_name`, didampingi lisensi `cert_issuer_license`).
+- **Masa berlaku sertifikat BNSP:** 3 tahun (dihitung otomatis sejak tanggal terbit lewat `cert_validity_years`).
+- **Bentuk sertifikat:** Digital (file PDF resmi dari LSP disimpan di penyimpanan privat; sistem DPD tidak mencetak/membuat sertifikat sendiri).
+
+Pertanyaan terbuka yang **masih menunggu kepastian**:
+1. **Syarat peserta & biaya:** Berapa rincian biaya uji kompetensi dan dokumen persyaratan teknis dari LSP (saat ini ditampilkan "Akan diumumkan oleh DPD JULEHA Brebes").
+2. **Format data resmi formulir LSP:** Kolom data apa saja selain Nama KTP, NIK, WhatsApp, Email, Kecamatan, dan Desa yang disyaratkan oleh form resmi LSP Pertanian RI saat pendaftaran kolektif.
+3. **Prosedur perpanjangan (resertifikasi):** Mekanisme perpanjangan setelah 3 tahun masa berlaku habis (sistem saat ini mengarahkan ke kontak WhatsApp panitia).
+4. **Instruktur BNSP:** Apakah anggota DPD yang memegang sertifikat instruktur/asesor, atau program penyaluran?
 5. **Akun Google Cloud** (OAuth Client) dibuat atas akun resmi DPD, bukan pribadi. Siapa pemiliknya?
-6. Siapa penanggung jawab data pribadi (NIK) di DPD dan siapa saja admin yang boleh membukanya?
-7. Syarat peserta, biaya (atau gratis), dan durasi tiap kegiatan.
-8. Layanan aqiqah dan qurban: ada paket, area layanan, atau tarif? Jika tidak, cukup diarahkan ke WhatsApp.
-9. Apakah DPD sudah menyetujui website ini, dan **domain serta hosting** atas nama siapa?
-10. Logo dan pedoman identitas resmi, serta foto kegiatan asli.
-11. **Verifikasi klaim di tampilan publik:** angka "100+ juru sembelih binaan", "100% standar syar'i", "Standar Kompetensi SKKNI", "Juleha Bersertifikat 250", "Angkatan Bimtek 12", "Mitra RPH/TPH 8", serta kata "Bersertifikat" dan "Uji Kompetensi" di strip CTA. Semua harus data yang bisa dibuktikan, atau dihapus/diganti placeholder.
+6. Layanan aqiqah dan qurban: ada paket, area layanan, atau tarif? Jika tidak, cukup diarahkan ke WhatsApp.
+7. Apakah DPD sudah menyetujui website ini, dan **domain serta hosting** atas nama siapa?
+8. Logo dan pedoman identitas resmi, serta foto kegiatan asli.
 
 ## 14. Risiko dan mitigasi
 
@@ -330,10 +333,9 @@ Hal yang tetap berlaku untuk template gratis:
 | Titip absen QR | Data kehadiran tidak sahih | QR berganti cepat, login wajib, cek status peserta, presensi manual tercatat |
 | Klaim sertifikasi tidak akurat (BNSP, SKKNI, angka statistik) | Masalah reputasi dan hukum | Verifikasi dengan DPD sebelum tayang, gunakan teks netral |
 | Materi bocor lewat URL | Materi dibagikan ke non-peserta | Penyimpanan privat, unduhan lewat route bertingkat izin |
+| Berkas sertifikat bocor | Dokumen privat disalahgunakan | Penyimpanan privat, nama file acak, verifikasi kepemilikan, header anti-cache |
 | Kehilangan `APP_KEY`/`NIK_HASH_KEY` | Data terenkripsi tidak bisa dibuka | Simpan kunci di pengelola password terpisah, sertakan di prosedur backup |
-| Pengurus belum menyetujui website | Tidak diakui resmi | Persetujuan tertulis dan penetapan penanggung jawab |
 | Domain/hosting atas nama pribadi | Sengketa kepemilikan | Daftarkan atas nama organisasi atau buat serah terima |
-| Upload materi besar gagal di hosting | Materi tidak bisa diunggah | Cek batas PHP, gunakan tautan YouTube/Drive untuk video |
 | Email tidak terkirim | Notifikasi tidak sampai | Siapkan SMTP/layanan email transaksional dan uji sebelum rilis |
 | Spam dan pendaftar palsu | Data kotor | Login Google, konfirmasi admin, rate limit |
 
@@ -342,11 +344,9 @@ Hal yang tetap berlaku untuk template gratis:
 | Tahap | Isi | Status |
 |---|---|---|
 | 0 | Persiapan: persetujuan DPD, konten, domain | Berjalan |
-| 1 | Template ke Laravel, tema JULEHA, panel admin, pengaturan situs | Sebagian besar selesai |
-| 2 | Portal peserta: Google login, profil dan NIK, enrollment, empat jenis kegiatan, delapan program | Berikutnya |
-| 3 | Materi per kegiatan | Menunggu tahap 2 |
-| 4 | Presensi QR | Menunggu tahap 3 |
-| 5 | Hasil kompetensi dan sertifikat | Menunggu jawaban pengurus |
-| 6 | Pengujian, pengisian konten, deploy (HTTPS, domain, email, backup) | Setelah itu |
-
-Perkiraan waktu bergantung pada ketersediaan konten dan keputusan pengurus.
+| 1 | Template ke Laravel, tema JULEHA, panel admin, pengaturan situs | Selesai |
+| 2 | Portal peserta: Google login, profil dan NIK, enrollment, tiga jenis kegiatan, tujuh program | Selesai |
+| 3 | Materi per kegiatan & unduhan privat | Selesai |
+| 4 | Presensi QR dan rekapitulasi kehadiran | Selesai |
+| 5 | Hasil kompetensi dan sertifikat (catat hasil, simpan PDF LSP, unduh privat, verifikasi publik, pengingat 3 tahun) | Selesai |
+| 6 | Pengujian menyeluruh, pengisian konten, deploy produksi (HTTPS, cron `schedule:run`, backup) | Sedang berjalan |

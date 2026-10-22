@@ -112,15 +112,49 @@ Lakukan simulasi dekripsi dan restorasi backup setidaknya setiap 6 bulan sekali 
 Berdasarkan Pasal 39 UU PDP, subjek data (peserta) berhak meminta pembaruan, perbaikan, atau penghapusan data pribadi miliknya.
 
 ### A. Mekanisme Permohonan
-1. Peserta mengajukan permohonan tertulis melalui email resmi DPD JULEHA Brebes (`dpd.julehabrebes@gmail.com`) atau melalui form pengaduan sekretariat.
+1. Peserta mengajukan permohonan tertulis melalui email resmi DPD JULEHA Brebes (`dpdjulehabrebesofficial@gmail.com`) atau melalui form pengaduan sekretariat.
 2. Petugas memverifikasi identitas pemohon dengan mencocokkan email Google dan nomor WhatsApp terdaftar.
 
-### B. Ketentuan Penghapusan
-- **Akun Belum Memiliki Sertifikat**: Data profil (`participant_profiles`) dan akun pengguna (`users`) akan dihapus secara permanen (*hard delete*) dalam waktu maksimal 3x24 jam kerja.
-- **Akun Telah Memiliki Sertifikat Resmi**: Demi kepatuhan hukum dan verifikasi keabsahan sertifikat publik:
-  - NIK dan nomor WhatsApp dianonimkan (misal: diganti hash acak / disamarkan permanen).
-  - Catatan nomor sertifikat dan nama pada arsip alumni tetap dipertahankan sebagai arsip keabsahan sembelihan halal.
-- Log audit penghapusan data dicatat di `audit_logs` dengan aksi `DATA_ERASURE_REQUEST`.
+### B. Ketentuan Penghapusan & Anonimisasi Akun (Kebijakan Terpilih: Opsi A)
+- **Akun Belum Memiliki Sertifikat**: Data profil (`participant_profiles`) dan akun pengguna (`users`) akan dihapus secara permanen (*hard delete*) jika tidak memiliki riwayat kehadiran/pendaftaran.
+- **Akun Telah Memiliki Sertifikat Resmi (Uji Kompetensi LSP)**:
+  - **Penghapusan Berkas Digital**: Berkas fisik sertifikat PDF milik peserta di penyimpanan privat (*private storage*) **dihapus secara permanen** demi menjaga privasi dokumen peserta.
+  - **Retensi Catatan Minimal Verifikasi**: Catatan data teknis sertifikat di basis data (`certificate_number`, `scheme_name`, `issuer_name`, `issued_at`, `valid_until`, `public_code`) **tetap dipertahankan** demi integritas verifikasi pihak ketiga (seperti Rumah Pemotongan Hewan, dinas pemerintah, atau masjid yang mengecek keabsahan nomor sertifikat yang pernah diterbitkan).
+  - **Anonimisasi Identitas Pemegang**: Nama peserta diganti dengan format teranonimkan (`Pengguna Dihapus #[ID]`), NIK, NIK hash, WhatsApp, email, dan alamat domisili dihapus permanen. Pada halaman verifikasi publik, nama akan tampil disamarkan secara anonim ("Pengguna D.") tanpa membocorkan identitas pemohon.
+- Log audit aksi dianonimkan dicatat di `audit_logs` dengan aksi `anonymized`.
+
+---
+
+## 7. Tata Kelola Data Sertifikat & Transfer Data ke LSP
+
+### A. Alur Data ke Lembaga Sertifikasi Profesi (LSP)
+1. DPD JULEHA Kabupaten Brebes bertindak sebagai penyelenggara/fasilitator uji kompetensi. Sertifikat digital diterbitkan oleh LSP berlisensi BNSP (default: **LSP Pertanian RI**).
+2. **Ekspor Data Peserta untuk LSP**:
+   - Hanya dapat dilakukan oleh **Super Admin** (`super_admin`) melalui Relation Manager pada kegiatan jenis `sertifikasi_kompetensi`.
+   - Wajib melalui dialog konfirmasi eksplisit yang mengingatkan bahwa file memuat data pribadi sensitif (Nama sesuai KTP, NIK lengkap, Kontak WhatsApp, Email, dan Domisili).
+   - Seluruh aktivitas ekspor dicatat secara permanen di `audit_logs` dengan aksi `exported_for_lsp`.
+   - File ekspor dikirimkan sebagai stream sekali pakai (*memory stream download*) bertanda UTF-8 BOM, **tidak disimpan permanen** di server web.
+
+### B. Penyimpanan & Akses Berkas Sertifikat Digital
+1. Sistem **tidak membuat atau mencetak sertifikat BNSP sendiri**. Sistem hanya menyimpan berkas PDF resmi yang diterbitkan oleh LSP.
+2. Berkas sertifikat PDF disimpan pada disk penyimpanan **PRIVAT** (`storage/app/private/certificates`), bukan folder publik yang dapat ditebak.
+3. Akses unduh berkas dikontrol secara ketat:
+   - Peserta hanya dapat mengunduh sertifikat miliknya sendiri jika berstatus **Kompeten** dan **tidak dicabut**.
+   - Admin Kegiatan & Super Admin dapat mengunduh berkas melalui panel admin, dengan setiap unduhan tercatat di log audit (`downloaded_by_admin`).
+   - Respon unduhan dilengkapi header anti-cache: `Cache-Control: private, no-cache, no-store, must-revalidate`.
+4. Validasi berkas saat unggah:
+   - Format wajib PDF asli, ukuran maksimal 5 MB.
+   - Pengecekan *Magic Bytes* (`%PDF-` pada header berkas) untuk menolak berkas palsu yang disamarkan.
+   - Perhitungan dan pencatatan *hash* kriptografi **SHA-256** untuk menjamin integritas berkas.
+
+### C. Verifikasi Publik Tanpa Paparan Data Pribadi
+1. Publik dapat memeriksa keabsahan catatan sertifikat DPD melalui `/verifikasi` (berdasarkan nomor sertifikat) atau tautan acak `/verifikasi/{public_code}`.
+2. **Prinsip Pelindungan Privasi Publik**:
+   - Nama pemegang sertifikat **wajib disamarkan** (nama depan + inisial nama belakang, misal: "Elhaq M.").
+   - Tidak pernah menampilkan NIK, nomor WhatsApp, email, alamat domisili, atau foto.
+   - Sertifikat dengan hasil `belum_kompeten` **tidak pernah tampil** di verifikasi publik.
+   - Pesan "tidak ditemukan" diseragamkan untuk nomor salah maupun tidak terdaftar guna mencegah *user/certificate enumeration*.
+   - Dilengkapi *rate limiting* ketat per IP dan tag meta `<meta name="robots" content="noindex, nofollow">` serta tidak didaftarkan dalam sitemap.
 
 ---
 

@@ -76,4 +76,24 @@ class AuditLog extends Model
             'meta' => $meta,
         ]);
     }
+
+    /**
+     * Catat aktivitas sertifikat (created, result_changed, file_uploaded, file_replaced, revoked, restored, downloaded_by_admin, exported_for_lsp).
+     * Mencegah pencatatan NIK atau isi file demi kepatuhan privasi.
+     */
+    public static function logCertificateActivity(string $action, int $certificateId, ?array $meta = null): self
+    {
+        $cleanMeta = $meta ?? [];
+        unset($cleanMeta['nik'], $cleanMeta['file_content'], $cleanMeta['content'], $cleanMeta['raw']);
+
+        return self::create([
+            'user_id' => auth()->id(),
+            'action' => $action,
+            'target_type' => 'Certificate',
+            'target_id' => $certificateId,
+            'ip_address' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+            'meta' => $cleanMeta,
+        ]);
+    }
 }

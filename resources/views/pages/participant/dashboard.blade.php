@@ -295,6 +295,22 @@
                 </div>
             </a>
 
+            <!-- Ubin 3: Sertifikat -->
+            <a href="{{ route('participant.certificates') }}"
+               class="portal-card p-4 hover:border-purple-300 dark:hover:border-purple-700 transition flex flex-col justify-between group">
+                <div class="w-10 h-10 rounded-xl portal-icon-box flex items-center justify-center transition-transform group-hover:scale-105">
+                    <i data-lucide="award" class="w-5 h-5"></i>
+                </div>
+                <div class="mt-3">
+                    <div class="font-bold text-sm portal-text group-hover:text-[var(--primary)] transition">
+                        Sertifikat
+                    </div>
+                    <div class="text-[11px] portal-text-muted mt-0.5">
+                        Hasil & berkas digital
+                    </div>
+                </div>
+            </a>
+
             <!-- Ubin 3: Riwayat Absen (2 + 1 melebar penuh di laptop & mobile, tidak ada lubang kosong) -->
             <a href="{{ route('participant.profile') }}#riwayat"
                class="portal-card p-4 hover:border-purple-300 dark:hover:border-purple-700 transition flex flex-row items-center justify-between sm:flex-col sm:items-start sm:justify-between lg:flex-row lg:items-center group col-span-2 md:col-span-1 lg:col-span-2">

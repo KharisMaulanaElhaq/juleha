@@ -286,13 +286,48 @@ erDiagram
     string key PK
     text value
   }
+  CERTIFICATES {
+    bigint id PK
+    bigint enrollment_id FK "unique"
+    bigint user_id FK
+    bigint event_id FK
+    string result "kompeten|belum_kompeten"
+    string certificate_number "nullable, unique"
+    text scheme_name
+    string issuer_name "default setting cert_issuer_name"
+    date issued_at "nullable"
+    date valid_until "nullable, auto +3 years"
+    string file_path "nullable, disk privat"
+    string file_name "nullable"
+    bigint file_size "nullable"
+    string file_sha256 "nullable, hash 64 char"
+    string public_code "unique, 12 char random"
+    timestamp revoked_at "nullable"
+    text revoked_reason "nullable"
+    text internal_note "nullable"
+    json reminders_sent "nullable, stages 180,90,30,expired"
+    bigint created_by FK
+    bigint updated_by FK
+  }
 ```
 
-Tabel Fase 5 (belum final, menunggu jawaban pengurus): `competency_results` (enrollment_id, hasil, nomor sertifikat, penerbit, tanggal terbit, masa berlaku, file sertifikat privat).
+### Modul Hasil Kompetensi & Sertifikat (Fase 5)
+- Sistem **TIDAK MEMBUAT atau MENCETAK** sertifikat sendiri. Sertifikat diterbitkan oleh Lembaga Sertifikasi Profesi (default: **LSP Pertanian RI**).
+- Berkas disimpan di disk privat `storage/app/private/certificates/` dengan nama acak unik dan hash SHA-256. Validasi wajib memeriksa *Magic Bytes* `%PDF-` pada byte awal untuk menangkal file tiruan.
+- Masa berlaku standar **3 tahun** (`cert_validity_years`), dihitung otomatis dari `issued_at` dan dapat disesuaikan admin.
+- Status turunan dihitung *runtime* (tidak disimpan): `dicabut`, `belum_kompeten`, `kedaluwarsa`, `segera_berakhir` (<= 90 hari), dan `aktif`.
+- Verifikasi publik di `/verifikasi` dan `/verifikasi/{public_code}`: nama disamarkan (nama depan + inisial), tanpa NIK, kontak, atau domisili, strict throttle rate limiting, tag meta `noindex, nofollow`, dan pesan seragam saat nomor tidak ditemukan.
+- Pengingat otomatis harian melalui artisan command `php artisan certificates:send-expiry-reminders` untuk tahap 180, 90, 30 hari dan hari kedaluwarsa. Dilengkapi pelacakan `reminders_sent` agar tiap tahap dikirim tepat satu kali.
+- **Kebutuhan Server Produksi**: Memerlukan cron job server sistem:
+  ```bash
+  * * * * * cd /path-to-app && php artisan schedule:run >> /dev/null 2>&1
+  ```
+  (Pada pengujian lokal: `php artisan schedule:work`).
 
 ### Aturan data penting
 
 - `enrollments`: unique `(user_id, event_id)`. Pengecekan kuota dilakukan **di dalam transaksi database**.
+- `certificates`: unique `(enrollment_id)` dan unique `(certificate_number)`.
 - `attendances`: unique `(event_session_id, user_id)`.
 - `participant_profiles.phone` dinormalisasi ke `62xxxxxxxxxx` dan unik. Format tampilan `0823-2444-8886`, sedangkan link `wa.me` memakai format `62...`.
 - `participant_profiles.nik_hash` unik, dipakai untuk mencegah satu NIK dipakai banyak akun.

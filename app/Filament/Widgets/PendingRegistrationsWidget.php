@@ -3,7 +3,9 @@
 namespace App\Filament\Widgets;
 
 use App\Enums\EnrollmentStatus;
+use App\Enums\EventType;
 use App\Mail\EnrollmentStatusChangedNotification;
+use App\Models\Certificate;
 use App\Models\Enrollment;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Textarea;
@@ -36,12 +38,43 @@ class PendingRegistrationsWidget extends TableWidget
 
     public function table(Table $table): Table
     {
+        $expiringCertCount = Certificate::expiringSoon(90)->count();
+        $unrecordedCertCount = Enrollment::whereIn('status', [EnrollmentStatus::Aktif, EnrollmentStatus::Selesai])
+            ->whereHas('event', function ($q) {
+                $q->where('type', EventType::SertifikasiKompetensi)
+                    ->whereNotNull('ends_at')
+                    ->where('ends_at', '<', now());
+            })
+            ->whereDoesntHave('certificate')
+            ->count();
+
+        $desc = 'Pendaftaran kegiatan berstatus menunggu diperiksa pengurus.';
+        if ($expiringCertCount > 0 || $unrecordedCertCount > 0) {
+            $desc .= " • Perhatian: {$expiringCertCount} sertifikat segera berakhir (90 hari), {$unrecordedCertCount} hasil sertifikasi selesai belum dicatat.";
+        }
+
         return $table
             ->heading('Perlu Tindakan')
-            ->description('Pendaftaran kegiatan berstatus menunggu diperiksa pengurus.')
+            ->description($desc)
             ->headerActions([
+                Action::make('expiring_certificates')
+                    ->label(fn (): string => "Sertifikat segera berakhir (90 hari): {$expiringCertCount}")
+                    ->icon('heroicon-m-clock')
+                    ->color($expiringCertCount > 0 ? 'warning' : 'gray')
+                    ->badge(fn (): ?string => $expiringCertCount > 0 ? (string) $expiringCertCount : null)
+                    ->url(route('filament.admin.resources.certificates.index', ['tableFilters[status][value]' => 'segera_berakhir']))
+                    ->visible(fn (): bool => auth()->user()?->isAdminKegiatan() === true),
+
+                Action::make('unrecorded_certificates')
+                    ->label(fn (): string => "Hasil belum dicatat: {$unrecordedCertCount}")
+                    ->icon('heroicon-m-exclamation-triangle')
+                    ->color($unrecordedCertCount > 0 ? 'danger' : 'gray')
+                    ->badge(fn (): ?string => $unrecordedCertCount > 0 ? (string) $unrecordedCertCount : null)
+                    ->url(route('filament.admin.resources.events.index', ['tableFilters[event_type][value]' => 'sertifikasi_kompetensi']))
+                    ->visible(fn (): bool => auth()->user()?->isAdminKegiatan() === true),
+
                 Action::make('view_all')
-                    ->label('Lihat Semua')
+                    ->label('Lihat Semua Pendaftaran')
                     ->icon('heroicon-m-arrow-top-right-on-square')
                     ->url(route('filament.admin.resources.enrollments.index'))
                     ->color('gray'),

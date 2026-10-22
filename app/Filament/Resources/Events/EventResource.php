@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Events;
 use App\Filament\Resources\Events\Pages\CreateEvent;
 use App\Filament\Resources\Events\Pages\EditEvent;
 use App\Filament\Resources\Events\Pages\ListEvents;
+use App\Filament\Resources\Events\RelationManagers\CertificatesRelationManager;
 use App\Filament\Resources\Events\RelationManagers\MaterialsRelationManager;
 use App\Filament\Resources\Events\RelationManagers\SessionsRelationManager;
 use App\Filament\Resources\Events\Schemas\EventForm;
@@ -50,6 +51,7 @@ class EventResource extends Resource
     public static function getRelations(): array
     {
         return [
+            CertificatesRelationManager::class,
             SessionsRelationManager::class,
             MaterialsRelationManager::class,
         ];

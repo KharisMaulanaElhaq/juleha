@@ -12,3 +12,7 @@ Schedule::command('app:close-finished-events')
     ->hourly()
     ->withoutOverlapping()
     ->runInBackground();
+
+Schedule::command('certificates:send-expiry-reminders')
+    ->daily()
+    ->withoutOverlapping();

@@ -4,7 +4,9 @@ use App\Http\Controllers\Admin\AttendanceReportController;
 use App\Http\Controllers\Admin\AttendanceScreenController;
 use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\Auth\ParticipantAuthController;
+use App\Http\Controllers\CertificateVerificationController;
 use App\Http\Controllers\Participant\AttendanceScanController;
+use App\Http\Controllers\Participant\CertificateController;
 use App\Http\Controllers\Participant\DashboardController;
 use App\Http\Controllers\Participant\EnrollmentController;
 use App\Http\Controllers\Participant\EventMaterialController;
@@ -204,7 +206,23 @@ Route::middleware(['auth', 'participant'])->group(function () {
     Route::get('/presensi/{token}', [AttendanceScanController::class, 'scan'])
         ->middleware('throttle:30,1')
         ->name('attendance.scan');
+
+    // Sertifikat Peserta
+    Route::get('/dashboard/sertifikat', [CertificateController::class, 'index'])
+        ->name('participant.certificates');
+    Route::get('/dashboard/sertifikat/{certificate}/unduh', [CertificateController::class, 'download'])
+        ->name('participant.certificates.download');
 });
+
+// ==========================================
+// VERIFIKASI PUBLIK CATATAN SERTIFIKAT DPD
+// ==========================================
+Route::get('/verifikasi', [CertificateVerificationController::class, 'index'])
+    ->middleware('throttle:15,1')
+    ->name('certificate.verify');
+Route::get('/verifikasi/{public_code}', [CertificateVerificationController::class, 'show'])
+    ->middleware('throttle:15,1')
+    ->name('certificate.verify.code');
 
 // ==========================================
 // ADMIN PRESENSI (PROTECTED - KHUSUS ADMIN)

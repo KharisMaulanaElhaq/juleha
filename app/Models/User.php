@@ -128,11 +128,11 @@ class User extends Authenticatable implements FilamentUser
     }
 
     /**
-     * Cek apakah pengguna memiliki riwayat di sistem (pendaftaran atau kehadiran).
+     * Cek apakah pengguna memiliki riwayat di sistem (pendaftaran, kehadiran, atau sertifikat).
      */
     public function hasHistory(): bool
     {
-        return $this->enrollments()->exists() || $this->attendances()->exists();
+        return $this->enrollments()->exists() || $this->attendances()->exists() || $this->certificates()->exists();
     }
 
     /**
@@ -164,6 +164,11 @@ class User extends Authenticatable implements FilamentUser
     public function attendances(): HasMany
     {
         return $this->hasMany(Attendance::class);
+    }
+
+    public function certificates(): HasMany
+    {
+        return $this->hasMany(Certificate::class);
     }
 
     public function activityLogs(): HasMany

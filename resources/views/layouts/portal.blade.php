@@ -176,7 +176,14 @@
                         <span>Absen</span>
                     </a>
 
-                    <!-- 3. Materi -->
+                    <!-- 3. Sertifikat -->
+                    <a href="{{ route('participant.certificates') }}"
+                       class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition {{ str_starts_with($currentRoute ?? '', 'participant.certificates') ? 'portal-icon-box font-bold' : 'portal-text-muted hover:portal-text hover:bg-slate-50 dark:hover:bg-slate-800/60' }}">
+                        <i data-lucide="award" class="w-4 h-4"></i>
+                        <span>Sertifikat</span>
+                    </a>
+
+                    <!-- 4. Materi -->
                     <a href="{{ route('dashboard') }}#materi"
                        class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition {{ str_contains($currentRoute ?? '', 'material') ? 'portal-icon-box font-bold' : 'portal-text-muted hover:portal-text hover:bg-slate-50 dark:hover:bg-slate-800/60' }}">
                         <i data-lucide="book-open" class="w-4 h-4"></i>
@@ -285,14 +292,21 @@
                 </span>
             </a>
 
-            <!-- 3. Materi -->
+            <!-- 3. Sertifikat -->
+            <a href="{{ route('participant.certificates') }}"
+               class="flex flex-col items-center justify-center py-1 {{ str_starts_with($activeTab ?? '', 'participant.certificates') ? 'text-[var(--primary)] font-bold' : 'portal-text-muted hover:portal-text' }} transition">
+                <i data-lucide="award" class="w-5 h-5 {{ str_starts_with($activeTab ?? '', 'participant.certificates') ? 'stroke-[2.5]' : 'stroke-2' }}"></i>
+                <span class="text-[11px] mt-0.5">Sertifikat</span>
+            </a>
+
+            <!-- 4. Materi -->
             <a href="{{ route('dashboard') }}#materi"
                class="flex flex-col items-center justify-center py-1 {{ str_contains($activeTab ?? '', 'material') ? 'text-[var(--primary)] font-bold' : 'portal-text-muted hover:portal-text' }} transition">
                 <i data-lucide="book-open" class="w-5 h-5 {{ str_contains($activeTab ?? '', 'material') ? 'stroke-[2.5]' : 'stroke-2' }}"></i>
                 <span class="text-[11px] mt-0.5">Materi</span>
             </a>
 
-            <!-- 4. Profil -->
+            <!-- 5. Profil -->
             <a href="{{ route('participant.profile') }}"
                class="flex flex-col items-center justify-center py-1 {{ $activeTab === 'participant.profile' ? 'text-[var(--primary)] font-bold' : 'portal-text-muted hover:portal-text' }} transition">
                 <i data-lucide="user" class="w-5 h-5 {{ $activeTab === 'participant.profile' ? 'stroke-[2.5]' : 'stroke-2' }}"></i>

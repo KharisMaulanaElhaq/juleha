@@ -139,6 +139,7 @@ class ManageSettings extends Page implements HasForms
             'cert_issuer_license' => $allSettings['cert_issuer_license'] ?? '',
             'cert_validity_years' => (string) ($allSettings['cert_validity_years'] ?? '3'),
             'cert_form_note' => $allSettings['cert_form_note'] ?? 'digital',
+            'cert_reminder_enabled' => ($allSettings['cert_reminder_enabled'] ?? '1') === '1',
         ]);
     }
 
@@ -402,6 +403,12 @@ class ManageSettings extends Page implements HasForms
                                             ->placeholder('digital')
                                             ->helperText('Bentuk terbitan sertifikat (contoh: digital).')
                                             ->columnSpan(1),
+
+                                        Toggle::make('cert_reminder_enabled')
+                                            ->label('Aktifkan Pengingat Masa Berlaku Otomatis')
+                                            ->helperText('Kirim email pengingat kepada peserta pada 180, 90, 30 hari sebelum masa berlaku habis dan saat kedaluwarsa.')
+                                            ->default(true)
+                                            ->columnSpanFull(),
                                     ]),
                             ]),
                     ]),
@@ -519,6 +526,7 @@ class ManageSettings extends Page implements HasForms
         Setting::set('cert_issuer_license', trim($state['cert_issuer_license'] ?? ''), 'certification');
         Setting::set('cert_validity_years', (string) ($state['cert_validity_years'] ?? '3'), 'certification');
         Setting::set('cert_form_note', trim($state['cert_form_note'] ?? 'digital'), 'certification');
+        Setting::set('cert_reminder_enabled', ! empty($state['cert_reminder_enabled']) ? '1' : '0', 'certification');
 
         $this->rememberData();
         Setting::clearCache();

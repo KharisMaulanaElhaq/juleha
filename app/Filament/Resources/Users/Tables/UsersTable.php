@@ -31,6 +31,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class UsersTable
@@ -475,6 +476,19 @@ class UsersTable
                                     'village' => null,
                                     'institution' => null,
                                     'status' => null,
+                                ]);
+                            }
+
+                            // Anonimkan berkas sertifikat (Opsi A: Hapus file fisik PDF, pertahankan catatan minimal verifikasi)
+                            foreach ($record->certificates as $cert) {
+                                if ($cert->file_path && Storage::disk('private')->exists($cert->file_path)) {
+                                    Storage::disk('private')->delete($cert->file_path);
+                                }
+                                $cert->update([
+                                    'file_path' => null,
+                                    'file_name' => null,
+                                    'file_size' => null,
+                                    'file_sha256' => null,
                                 ]);
                             }
 
