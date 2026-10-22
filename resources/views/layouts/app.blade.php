@@ -5,12 +5,12 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@yield('title', setting('site_name', 'DPD JULEHA Kabupaten Brebes') . ' – Juru Sembelih Halal')</title>
-    <meta name="description" content="@yield('meta_description', 'Situs resmi ' . setting('site_name', 'DPD JULEHA Kabupaten Brebes') . '. Pusat informasi edukasi fiqih sembelih, bimbingan teknis, sertifikasi kompetensi, dan pengawasan hewan kurban syar’i & higienis.')" />
+    <meta name="description" content="@yield('meta_description', 'Situs resmi ' . setting('site_name', 'DPD JULEHA Kabupaten Brebes') . '. Pusat informasi edukasi fiqih sembelih, bimbingan teknis, sertifikasi kompetensi BNSP, dan pengawasan hewan kurban syar’i & higienis.')" />
     <meta name="theme-color" content="#33204f" />
 
     <!-- Open Graph & Social Cards -->
     <meta property="og:title" content="@yield('title', setting('site_name', 'DPD JULEHA Kabupaten Brebes') . ' – Juru Sembelih Halal')" />
-    <meta property="og:description" content="@yield('meta_description', 'Situs resmi ' . setting('site_name', 'DPD JULEHA Kabupaten Brebes') . '. Pusat informasi edukasi, bimtek, dan sertifikasi sembelih halal.')" />
+    <meta property="og:description" content="@yield('meta_description', 'Situs resmi ' . setting('site_name', 'DPD JULEHA Kabupaten Brebes') . '. Pusat informasi edukasi, bimtek, dan sertifikasi kompetensi BNSP.')" />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="{{ url()->current() }}" />
     <meta property="og:image" content="{{ asset('assets/logo-juleha-brebes.png') }}" />

@@ -61,7 +61,6 @@ class EnrollmentsTable
                     ->color(fn (?EventType $state): string => match ($state) {
                         EventType::Bimtek => 'success',
                         EventType::SertifikasiKompetensi => 'info',
-                        EventType::SertifikasiBnsp => 'purple',
                         EventType::Tot => 'warning',
                         default => 'gray',
                     })

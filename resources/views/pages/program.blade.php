@@ -94,7 +94,7 @@
             subtitle="Bimbingan teknis berkala, pengkaderan pelatih, dan fasilitasi uji sertifikasi profesi BNSP berstandar nasional bersama LSP mitra."
         />
 
-        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="grid md:grid-cols-2 xl:grid-cols-4 gap-6">
             @foreach ($educationPrograms as $prog)
             <div class="card-juleha flex flex-col justify-between group" data-aos="fade-up" data-aos-delay="{{ $loop->index * 100 }}">
                 <div>

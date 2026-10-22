@@ -59,7 +59,7 @@ DPD JULEHA (Juru Sembelih Halal) Kabupaten Brebes belum punya website resmi. Aki
 
 ## 4. Program dan jenis kegiatan
 
-### 4.1 Delapan program (halaman publik)
+### 4.1 Tujuh program (halaman publik)
 
 **Layanan Masyarakat**
 1. Penyembelihan Hewan Aqiqah
@@ -68,22 +68,20 @@ DPD JULEHA (Juru Sembelih Halal) Kabupaten Brebes belum punya website resmi. Aki
 
 **Pendidikan & Sertifikasi**
 4. Bimtek dan Pelatihan
-5. Sertifikasi Kompetensi
-6. Sertifikasi BNSP
-7. Training of Trainer (TOT) Juleha
-8. Instruktur BNSP
+5. Sertifikasi Kompetensi BNSP
+6. Training of Trainer (TOT) Juleha
+7. Instruktur BNSP
 
-Program 1 sampai 3 diarahkan ke WhatsApp admin. Program 4 sampai 7 punya kegiatan (angkatan) yang bisa didaftar lewat portal.
+Program 1 sampai 3 diarahkan ke WhatsApp admin. Program 4 sampai 6 punya kegiatan (angkatan) yang bisa didaftar lewat portal. "Instruktur BNSP" tetap program terpisah dan bukan jenis kegiatan.
 
-> **Catatan konten:** perbedaan Sertifikasi Kompetensi dan Sertifikasi BNSP, lembaga penyelenggara/LSP mitra, syarat, dan biaya **belum dikonfirmasi** oleh pengurus. Deskripsi keduanya sementara netral ("informasi lengkap akan diumumkan oleh DPD") dan tidak memuat klaim penerbit atau lisensi.
+> **Catatan penggabungan program & jenis kegiatan:** "Sertifikasi Kompetensi" dan "Sertifikasi BNSP" telah digabungkan menjadi SATU program dan SATU jenis kegiatan resmi: **Sertifikasi Kompetensi BNSP** (`sertifikasi_kompetensi`, slug: `sertifikasi-kompetensi-bnsp`). Kolom partner/LSP tetap kosong sampai diisi admin. Deskripsi bersifat netral ("Fasilitasi uji kompetensi juru sembelih halal melalui lembaga sertifikasi mitra. Informasi lengkap akan diumumkan oleh DPD.") dengan tombol tanya via WhatsApp.
 
-### 4.2 Empat jenis kegiatan (yang bisa didaftar peserta)
+### 4.2 Tiga jenis kegiatan (yang bisa didaftar peserta)
 
 | Jenis | Label |
 |---|---|
 | `bimtek` | Bimtek |
-| `sertifikasi_kompetensi` | Sertifikasi Kompetensi |
-| `sertifikasi_bnsp` | Sertifikasi BNSP |
+| `sertifikasi_kompetensi` | Sertifikasi Kompetensi BNSP |
 | `tot` | Training of Trainer (TOT) |
 
 Semua jenis memakai kerangka yang sama: pendaftaran, materi, sesi, presensi. Pembedanya hanya jenis dan label. Peserta mendaftar ke **angkatan/jadwal tertentu** (misal "Bimtek Angkatan 13, Oktober 2026"), bukan ke program secara umum, sehingga materi dan presensi menempel di angkatan itu.
@@ -310,7 +308,7 @@ Hal yang tetap berlaku untuk template gratis:
 
 ## 13. Pertanyaan terbuka
 
-1. **Beda Sertifikasi Kompetensi dan Sertifikasi BNSP** menurut DPD: siapa penerbitnya, lewat LSP mana, siapa asesornya, bentuk dan masa berlaku sertifikat? (Menentukan isi halaman program, syarat peserta, dan bentuk Fase 5.)
+1. **Penerbit dan LSP Mitra Sertifikasi Kompetensi BNSP:** siapa nama lembaga sertifikasi profesi (LSP) mitra, siapa asesornya, serta bentuk dan masa berlaku sertifikat? (Perbedaan Sertifikasi Kompetensi dan BNSP telah diselesaikan karena keduanya merupakan satu program; detail LSP mitra menunggu kepastian resmi DPD).
 2. **Instruktur BNSP:** apakah anggota DPD yang memegang sertifikat instruktur/asesor, atau program penyaluran?
 3. **Field di sertifikat:** apa yang harus tercetak (nama sesuai KTP, NIK, tempat/tanggal lahir, nomor sertifikat, tanggal terbit)? Apakah ada batas kehadiran minimum?
 4. **Login:** Google saja, atau tetap menyediakan email+password sebagai cadangan untuk peserta yang tidak punya akun Google?

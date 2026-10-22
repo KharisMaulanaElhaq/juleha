@@ -69,7 +69,7 @@ class EventSessionsTable
                 ]),
             ])
             ->emptyStateHeading('Belum Ada Sesi Pelatihan')
-            ->emptyStateDescription('Buat sesi baru untuk jadwal kegiatan bimtek atau sertifikasi kompetensi.')
+            ->emptyStateDescription('Buat sesi baru untuk jadwal kegiatan bimtek atau sertifikasi kompetensi BNSP.')
             ->emptyStateIcon('heroicon-o-calendar-days')
             ->defaultSort('starts_at', 'desc');
     }

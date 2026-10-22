@@ -370,14 +370,16 @@ class ParticipantPortalTest extends TestCase
     }
 
     /**
-     * 4. 4 Jenis Kegiatan Enum: bimtek, sertifikasi_kompetensi, sertifikasi_bnsp, tot.
+     * 4. 3 Jenis Kegiatan Enum: bimtek, sertifikasi_kompetensi, tot.
      */
-    public function test_four_event_types_are_properly_supported(): void
+    public function test_three_event_types_are_properly_supported(): void
     {
+        $this->assertCount(3, EventType::cases());
+        $this->assertEquals('Sertifikasi Kompetensi BNSP', EventType::SertifikasiKompetensi->label());
+
         $types = [
             EventType::Bimtek,
             EventType::SertifikasiKompetensi,
-            EventType::SertifikasiBnsp,
             EventType::Tot,
         ];
 
@@ -400,9 +402,9 @@ class ParticipantPortalTest extends TestCase
     }
 
     /**
-     * 5. Program: halaman /program menampilkan 8 program lengkap.
+     * 5. Program: halaman /program menampilkan 7 program lengkap.
      */
-    public function test_program_page_displays_all_eight_programs(): void
+    public function test_program_page_displays_all_seven_programs(): void
     {
         $response = $this->get('/program');
         $response->assertStatus(200);
@@ -412,8 +414,7 @@ class ParticipantPortalTest extends TestCase
             'Qurban',
             'Syiar dan Edukasi Keliling',
             'Bimtek dan Pelatihan',
-            'Sertifikasi Kompetensi',
-            'Sertifikasi BNSP',
+            'Sertifikasi Kompetensi BNSP',
             'Training of Trainer (TOT) Juleha',
             'Instruktur BNSP',
         ];

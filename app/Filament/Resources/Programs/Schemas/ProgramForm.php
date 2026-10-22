@@ -63,7 +63,7 @@ class ProgramForm
                                     'award' => 'award (Qurban / Keutamaan Ibadah)',
                                     'megaphone' => 'megaphone (Syiar & Edukasi Keliling)',
                                     'book-open' => 'book-open (Bimtek & Pelatihan)',
-                                    'badge-check' => 'badge-check (Sertifikasi BNSP)',
+                                    'badge-check' => 'badge-check (Sertifikasi Kompetensi BNSP)',
                                     'users' => 'users (Training of Trainer TOT)',
                                     'graduation-cap' => 'graduation-cap (Instruktur BNSP)',
                                     'check-circle' => 'check-circle (Standar / Umum)',

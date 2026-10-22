@@ -191,7 +191,7 @@ erDiagram
   EVENTS {
     bigint id PK
     bigint program_id FK
-    string type "bimtek|sertifikasi_kompetensi|sertifikasi_bnsp|tot"
+    string type "bimtek|sertifikasi_kompetensi|tot"
     string title
     string slug
     datetime starts_at
@@ -485,7 +485,7 @@ Pengujian otomatis (`php artisan test`) mencakup minimal:
 - Enrollment: sukses, duplikat, kuota penuh, event tertutup ditolak.
 - Materi: peserta aktif bisa mengunduh, peserta kegiatan lain atau berstatus menunggu mendapat 403, tamu diarahkan ke login.
 - Presensi: sukses, token kedaluwarsa, di luar jam sesi, peserta non-aktif, dan presensi ganda ditolak.
-- Empat jenis kegiatan tampil di katalog, delapan program tampil di `/program`.
+- Tiga jenis kegiatan tampil di katalog, tujuh program tampil di `/program`.
 - Perubahan pengaturan situs langsung tampil di top bar, footer, Kontak, dan link WhatsApp.
 
 ## 16. Roadmap teknis
@@ -493,7 +493,7 @@ Pengujian otomatis (`php artisan test`) mencakup minimal:
 | Fase | Fokus | Catatan |
 |---|---|---|
 | 1 | Situs publik, panel admin, pengaturan situs | Sebagian besar selesai |
-| 2 | Google login, profil dan NIK, enrollment, empat jenis kegiatan, delapan program, Policy | Berikutnya |
+| 2 | Google login, profil dan NIK, enrollment, tiga jenis kegiatan, tujuh program, Policy | Berikutnya |
 | 3 | Materi privat per kegiatan | Setelah fase 2 |
 | 4 | Presensi QR dan rekap | Setelah fase 3 |
 | 5 | Hasil kompetensi dan sertifikat | Menunggu keputusan pengurus |
@@ -503,7 +503,7 @@ Integrasi WhatsApp: saat ini tautan `wa.me` dengan pesan terisi. Notifikasi otom
 
 ## 17. Asumsi dan hal yang belum final
 
-- Bentuk Fase 5 (hasil kompetensi dan sertifikat) bergantung pada jawaban pengurus: perbedaan Sertifikasi Kompetensi dan BNSP, penerbit, field sertifikat, batas kehadiran.
+- Bentuk Fase 5 (hasil kompetensi dan sertifikat) bergantung pada jawaban pengurus: penerbit dan LSP mitra, field sertifikat, batas kehadiran (Sertifikasi Kompetensi dan Sertifikasi BNSP telah disatukan menjadi Sertifikasi Kompetensi BNSP).
 - Pilihan "Google saja" atau "Google + email cadangan" menunggu keputusan DPD. Rancangan sudah menyediakan toggle.
 - Peran `instruktur` belum dibuat. Hanya admin yang mengunggah materi dan mengelola presensi.
 - Kompatibilitas paket pihak ketiga dengan Laravel 13 diperiksa saat pemasangan.

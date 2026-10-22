@@ -37,7 +37,7 @@
                 'umum' => 'Umum & Keorganisasian',
                 'bimtek' => 'Bimbingan Teknis & Pelatihan',
                 'fiqih' => 'Fiqih & Praktik Penyembelihan',
-                'sertifikasi' => 'Sertifikasi BNSP & Kemitraan Masjid',
+                'sertifikasi' => 'Sertifikasi Kompetensi BNSP & Kemitraan Masjid',
             ];
         @endphp
 

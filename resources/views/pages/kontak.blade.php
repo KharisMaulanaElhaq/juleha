@@ -159,7 +159,7 @@
                             <select id="contact_category" class="w-full bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-brand dark:focus:border-brand-dark" required>
                                 <option value="Informasi Bimtek">Informasi Bimbingan Teknis</option>
                                 <option value="Pendampingan Kurban">Pendampingan Sembelih Kurban Masjid</option>
-                                <option value="Sertifikasi BNSP">Informasi Uji Kompetensi BNSP</option>
+                                <option value="Sertifikasi Kompetensi BNSP">Informasi Uji Kompetensi BNSP</option>
                                 <option value="Kerjasama RPH">Kerjasama / Konsultasi RPH/RPU</option>
                                 <option value="Lainnya">Lainnya</option>
                             </select>

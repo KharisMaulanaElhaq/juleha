@@ -57,7 +57,7 @@ class EventForm
                                 ->options(collect(EventType::cases())->mapWithKeys(fn (EventType $type) => [$type->value => $type->label()]))
                                 ->default(EventType::Bimtek->value)
                                 ->required()
-                                ->helperText('Pilih salah satu dari 4 kategori kegiatan resmi.')
+                                ->helperText('Pilih salah satu dari 3 kategori kegiatan resmi.')
                                 ->columnSpan(1),
 
                             Select::make('program_id')

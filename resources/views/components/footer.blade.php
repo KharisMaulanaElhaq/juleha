@@ -139,7 +139,7 @@
                     <li><a href="{{ route('program.show', 'penyembelihan-aqiqah') }}" class="text-slate-400 text-sm hover:text-brand-highlight transition-colors">Penyembelihan Aqiqah</a></li>
                     <li><a href="{{ route('program.show', 'qurban') }}" class="text-slate-400 text-sm hover:text-brand-highlight transition-colors">Pelayanan Qurban</a></li>
                     <li><a href="{{ route('program.show', 'bimtek-pelatihan') }}" class="text-slate-400 text-sm hover:text-brand-highlight transition-colors">Bimtek &amp; Pelatihan</a></li>
-                    <li><a href="{{ route('program.show', 'sertifikasi-bnsp') }}" class="text-slate-400 text-sm hover:text-brand-highlight transition-colors">Sertifikasi BNSP</a></li>
+                    <li><a href="{{ route('program.show', 'sertifikasi-kompetensi-bnsp') }}" class="text-slate-400 text-sm hover:text-brand-highlight transition-colors">Sertifikasi Kompetensi BNSP</a></li>
                 </ul>
             </div>
 

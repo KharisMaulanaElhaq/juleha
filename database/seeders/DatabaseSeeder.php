@@ -42,10 +42,12 @@ class DatabaseSeeder extends Seeder
             Setting::set($key, $val);
         }
 
-        // 2. Events (Jadwal Kegiatan & Pelatihan 4 Jenis)
+        // 1. Program Resmi (7 Program)
+        $this->call(ProgramSeeder::class);
+
+        // 2. Events (Jadwal Kegiatan & Pelatihan 3 Jenis)
         $bimtekProgram = Program::where('slug', 'bimtek-pelatihan')->first();
-        $bnspProgram = Program::where('slug', 'sertifikasi-bnsp')->first();
-        $kompetensiProgram = Program::where('slug', 'sertifikasi-kompetensi')->first();
+        $sertifikasiProgram = Program::where('slug', 'sertifikasi-kompetensi-bnsp')->first();
         $totProgram = Program::where('slug', 'tot-juleha')->first();
 
         $event1 = Event::updateOrCreate(
@@ -71,18 +73,18 @@ class DatabaseSeeder extends Seeder
         );
 
         $event2 = Event::updateOrCreate(
-            ['slug' => 'sertifikasi-bnsp-skkni'],
+            ['slug' => 'sertifikasi-kompetensi-bnsp-angkatan-1'],
             [
                 'title' => '[CONTOH] Uji Kompetensi & Sertifikasi BNSP Juru Sembelih Halal',
-                'type' => EventType::SertifikasiBnsp,
-                'program_id' => $bnspProgram?->id,
+                'type' => EventType::SertifikasiKompetensi,
+                'program_id' => $sertifikasiProgram?->id,
                 'starts_at' => now()->addDays(30)->setTime(8, 30),
                 'ends_at' => now()->addDays(30)->setTime(17, 0),
                 'location' => '[CONTOH] RPH Brebes & TPH Terpadu',
                 'quota' => 20,
-                'fee' => 350000,
+                'fee' => 0,
                 'status' => 'open',
-                'description' => '[CONTOH] Asesmen kompetensi profesi Juleha bersertifikat Badan Nasional Sertifikasi Profesi (BNSP) mengacu pada SKKNI Penyembelihan Halal.',
+                'description' => '[CONTOH] Asesmen kompetensi profesi Juleha berstandar Badan Nasional Sertifikasi Profesi (BNSP) melalui lembaga sertifikasi mitra.',
                 'curriculum' => [
                     'Penerapan K3 di Area Penyembelihan',
                     'Pemeriksaan Antemortem & Kesejahteraan Hewan',
@@ -93,27 +95,6 @@ class DatabaseSeeder extends Seeder
         );
 
         $event3 = Event::updateOrCreate(
-            ['slug' => 'sertifikasi-kompetensi-angkatan-1'],
-            [
-                'title' => '[CONTOH] Sertifikasi Kompetensi Juru Sembelih Halal DPD Brebes',
-                'type' => EventType::SertifikasiKompetensi,
-                'program_id' => $kompetensiProgram?->id,
-                'starts_at' => now()->addDays(45)->setTime(8, 0),
-                'ends_at' => now()->addDays(45)->setTime(16, 0),
-                'location' => '[CONTOH] Balai Latihan Kerja (BLK) Brebes',
-                'quota' => 25,
-                'fee' => 0,
-                'status' => 'open',
-                'description' => '[CONTOH] Program pembuktian dan standardisasi kompetensi dasar penyembelihan halal sesuai kaidah fiqih dan higienitas.',
-                'curriculum' => [
-                    'Uji Teori Fiqih Penyembelihan Syar\'i',
-                    'Uji Ketajaman Bilah & Adab Ihsan',
-                    'Simulasi Perebahan & Eksekusi Sembelih',
-                ],
-            ]
-        );
-
-        $event4 = Event::updateOrCreate(
             ['slug' => 'tot-juleha-angkatan-1'],
             [
                 'title' => '[CONTOH] Training of Trainer (TOT) Pelatih Sembelih Halal Brebes',
@@ -303,8 +284,5 @@ class DatabaseSeeder extends Seeder
                 $f
             );
         }
-
-        // 8. Programs
-        $this->call(ProgramSeeder::class);
     }
 }

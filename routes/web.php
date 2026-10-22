@@ -97,6 +97,8 @@ Route::redirect('/program/binaan-masjid', '/program/syiar-edukasi', 301);
 Route::redirect('/program/pengawasan-kurban', '/program/qurban', 301);
 Route::redirect('/program/standardisasi-rph', '/program/syiar-edukasi', 301);
 Route::redirect('/program/sosialisasi-asuh', '/program/syiar-edukasi', 301);
+Route::redirect('/program/sertifikasi-bnsp', '/program/sertifikasi-kompetensi-bnsp', 301);
+Route::redirect('/program/sertifikasi-kompetensi', '/program/sertifikasi-kompetensi-bnsp', 301);
 
 Route::get('/program/{slug}', function (string $slug) {
     $program = Program::where('slug', strtolower(trim($slug)))

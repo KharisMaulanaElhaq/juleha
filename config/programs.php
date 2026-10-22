@@ -5,7 +5,7 @@ return [
     'qurban' => 'Qurban',
     'syiar-edukasi' => 'Syiar dan Edukasi Keliling',
     'bimtek-pelatihan' => 'Bimtek dan Pelatihan',
-    'sertifikasi-bnsp' => 'Sertifikasi Kompetensi BNSP',
+    'sertifikasi-kompetensi-bnsp' => 'Sertifikasi Kompetensi BNSP',
     'tot-juleha' => 'Training of Trainer (TOT) Juleha',
     'instruktur-bnsp' => 'Instruktur BNSP',
 ];

@@ -18,9 +18,9 @@ class ProgramTest extends TestCase
     }
 
     /**
-     * Memastikan halaman /program menampilkan 8 program resmi dalam dua kategori.
+     * Memastikan halaman /program menampilkan 7 program resmi dalam dua kategori.
      */
-    public function test_program_index_displays_eight_active_programs_grouped_by_category(): void
+    public function test_program_index_displays_seven_active_programs_grouped_by_category(): void
     {
         $response = $this->get('/program');
         $response->assertStatus(200);
@@ -29,14 +29,13 @@ class ProgramTest extends TestCase
         $response->assertSeeText('Layanan Masyarakat');
         $response->assertSeeText('Pendidikan & Sertifikasi');
 
-        // 8 Program resmi DPD JULEHA Brebes
+        // 7 Program resmi DPD JULEHA Brebes
         $expectedPrograms = [
             'Penyembelihan Hewan Aqiqah',
             'Qurban',
             'Syiar dan Edukasi Keliling',
             'Bimtek dan Pelatihan',
-            'Sertifikasi Kompetensi',
-            'Sertifikasi BNSP',
+            'Sertifikasi Kompetensi BNSP',
             'Training of Trainer (TOT) Juleha',
             'Instruktur BNSP',
         ];
@@ -49,15 +48,14 @@ class ProgramTest extends TestCase
     /**
      * Memastikan tiap halaman detail /program/{slug} terbuka sukses dan memuat konten yang sesuai.
      */
-    public function test_all_eight_program_detail_pages_load_successfully(): void
+    public function test_all_seven_program_detail_pages_load_successfully(): void
     {
         $slugs = [
             'penyembelihan-aqiqah',
             'qurban',
             'syiar-edukasi',
             'bimtek-pelatihan',
-            'sertifikasi-kompetensi',
-            'sertifikasi-bnsp',
+            'sertifikasi-kompetensi-bnsp',
             'tot-juleha',
             'instruktur-bnsp',
         ];
@@ -78,6 +76,20 @@ class ProgramTest extends TestCase
                 $response->assertSee('wa.me/');
             }
         }
+    }
+
+    /**
+     * Memastikan slug lama sertifikasi dialihkan 301 ke slug baru.
+     */
+    public function test_legacy_certification_slugs_redirect_to_unified_slug_301(): void
+    {
+        $response1 = $this->get('/program/sertifikasi-bnsp');
+        $response1->assertStatus(301);
+        $response1->assertRedirect('/program/sertifikasi-kompetensi-bnsp');
+
+        $response2 = $this->get('/program/sertifikasi-kompetensi');
+        $response2->assertStatus(301);
+        $response2->assertRedirect('/program/sertifikasi-kompetensi-bnsp');
     }
 
     /**

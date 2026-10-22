@@ -8,17 +8,16 @@ use Illuminate\Database\Seeder;
 class ProgramSeeder extends Seeder
 {
     /**
-     * Konten 8 Program Resmi DPD JULEHA Kabupaten Brebes:
+     * Konten 7 Program Resmi DPD JULEHA Kabupaten Brebes:
      * - Layanan Masyarakat:
      *   1. Penyembelihan Hewan Aqiqah
      *   2. Qurban
      *   3. Syiar dan Edukasi Keliling
      * - Pendidikan & Sertifikasi:
      *   4. Bimtek dan Pelatihan
-     *   5. Sertifikasi Kompetensi (netral, LSP mitra editable admin)
-     *   6. Sertifikasi BNSP (netral, LSP mitra editable admin)
-     *   7. Training of Trainer (TOT) Juleha
-     *   8. Instruktur BNSP
+     *   5. Sertifikasi Kompetensi BNSP (netral, LSP mitra editable admin)
+     *   6. Training of Trainer (TOT) Juleha
+     *   7. Instruktur BNSP
      */
     public function run(): void
     {
@@ -136,41 +135,16 @@ class ProgramSeeder extends Seeder
                 'meta_description' => 'Bimbingan teknis resmi teori fiqih dan praktik sembelih halal bersertifikat di Kabupaten Brebes bersama DPD JULEHA.',
             ],
             [
-                'title' => 'Sertifikasi Kompetensi',
-                'slug' => 'sertifikasi-kompetensi',
+                'title' => 'Sertifikasi Kompetensi BNSP',
+                'slug' => 'sertifikasi-kompetensi-bnsp',
                 'category' => 'Pendidikan & Sertifikasi',
-                'summary' => 'Standardisasi dan pengujian kompetensi juru sembelih halal di Kabupaten Brebes. Informasi lengkap akan diumumkan oleh DPD.',
-                'description' => '<p>Program Sertifikasi Kompetensi diselenggarakan untuk membina dan memastikan standar keahlian juru sembelih halal di Kabupaten Brebes. Informasi lengkap mengenai persyaratan teknis, biaya, dan jadwal pelaksanaan akan diumumkan resmi oleh DPD JULEHA Brebes.</p>',
-                'icon' => 'award',
+                'summary' => 'Fasilitasi uji kompetensi juru sembelih halal melalui lembaga sertifikasi mitra. Informasi lengkap akan diumumkan oleh DPD.',
+                'description' => '<p>Fasilitasi uji kompetensi juru sembelih halal melalui lembaga sertifikasi mitra. Informasi lengkap akan diumumkan oleh DPD.</p>',
+                'icon' => 'badge-check',
                 'lsp_name' => null,
                 'features' => [
-                    'Standardisasi keahlian juru sembelih halal',
-                    'Penyelarasan standar kompetensi teknis sembelih syar\'i dan higienis',
-                ],
-                'requirements' => null,
-                'how_to_join' => [
-                    'Hubungi sekretariat DPD JULEHA Brebes via WhatsApp untuk konsultasi awal',
-                    'Informasi pembukaan angkatan sertifikasi akan diumumkan secara berkala di portal resmi',
-                ],
-                'cta_type' => 'whatsapp',
-                'cta_text' => 'Tanya via WhatsApp',
-                'cta_whatsapp_message' => 'Halo Admin, saya ingin menanyakan informasi program Sertifikasi Kompetensi DPD JULEHA Brebes.',
-                'sort_order' => 5,
-                'is_active' => true,
-                'meta_title' => 'Sertifikasi Kompetensi Juru Sembelih – DPD JULEHA Brebes',
-                'meta_description' => 'Program sertifikasi kompetensi juru sembelih halal DPD JULEHA Kabupaten Brebes.',
-            ],
-            [
-                'title' => 'Sertifikasi BNSP',
-                'slug' => 'sertifikasi-bnsp',
-                'category' => 'Pendidikan & Sertifikasi',
-                'summary' => 'Fasilitasi uji kompetensi juru sembelih halal melalui Lembaga Sertifikasi Profesi (LSP) mitra. Informasi lengkap akan diumumkan oleh DPD.',
-                'description' => '<p>Program Sertifikasi BNSP memfasilitasi juru sembelih halal untuk mengikuti uji kompetensi standar nasional melalui Lembaga Sertifikasi Profesi (LSP) mitra. Informasi lengkap mengenai nama lembaga penyelenggara/LSP mitra, jadwal, dan persyaratan akan diumumkan resmi oleh DPD JULEHA Brebes.</p>',
-                'icon' => 'badge-check',
-                'lsp_name' => 'LSP Mitra Terlisensi BNSP',
-                'features' => [
-                    'Fasilitasi uji kompetensi standar nasional',
-                    'Kerja sama dengan LSP mitra terlisensi resmi',
+                    'Fasilitasi uji kompetensi juru sembelih halal bersama lembaga sertifikasi mitra',
+                    'Standardisasi keahlian juru sembelih halal syar\'i dan higienis',
                 ],
                 'requirements' => null,
                 'how_to_join' => [
@@ -179,11 +153,11 @@ class ProgramSeeder extends Seeder
                 ],
                 'cta_type' => 'whatsapp',
                 'cta_text' => 'Tanya via WhatsApp',
-                'cta_whatsapp_message' => 'Halo Admin, saya ingin menanyakan informasi fasilitasi Sertifikasi BNSP DPD JULEHA Brebes.',
-                'sort_order' => 6,
+                'cta_whatsapp_message' => 'Halo Admin, saya ingin menanyakan informasi fasilitasi Sertifikasi Kompetensi BNSP DPD JULEHA Brebes.',
+                'sort_order' => 5,
                 'is_active' => true,
-                'meta_title' => 'Fasilitasi Sertifikasi BNSP – DPD JULEHA Brebes',
-                'meta_description' => 'Fasilitasi sertifikasi BNSP resmi bersama LSP mitra di Kabupaten Brebes.',
+                'meta_title' => 'Sertifikasi Kompetensi BNSP – DPD JULEHA Brebes',
+                'meta_description' => 'Fasilitasi uji kompetensi juru sembelih halal melalui lembaga sertifikasi mitra di Kabupaten Brebes.',
             ],
             [
                 'title' => 'Training of Trainer (TOT) Juleha',
@@ -208,7 +182,7 @@ class ProgramSeeder extends Seeder
                 'cta_type' => 'whatsapp',
                 'cta_text' => 'Tanya Informasi TOT',
                 'cta_whatsapp_message' => 'Halo Admin, saya ingin menanyakan informasi seputar program Training of Trainer (TOT) DPD JULEHA Brebes.',
-                'sort_order' => 7,
+                'sort_order' => 6,
                 'is_active' => true,
                 'meta_title' => 'Training of Trainer (TOT) Juleha – DPD JULEHA Brebes',
                 'meta_description' => 'Program pelatihan instruktur dan kader pelatih sembelih halal di tingkat kecamatan se-Kabupaten Brebes.',
@@ -236,7 +210,7 @@ class ProgramSeeder extends Seeder
                 'cta_type' => 'whatsapp',
                 'cta_text' => 'Konsultasi Jenjang Instruktur',
                 'cta_whatsapp_message' => 'Halo Admin, saya ingin menanyakan informasi fasilitasi jenjang Instruktur BNSP Sembelih Halal melalui DPD JULEHA Brebes.',
-                'sort_order' => 8,
+                'sort_order' => 7,
                 'is_active' => true,
                 'meta_title' => 'Fasilitasi Jenjang Instruktur BNSP – DPD JULEHA Brebes',
                 'meta_description' => 'Fasilitasi sertifikasi profesi instruktur metodologi pelatihan sembelih halal berstandar BNSP melalui LSP mitra di Brebes.',
