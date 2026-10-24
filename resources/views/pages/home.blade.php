@@ -386,7 +386,7 @@
                         Infaq: <span class="font-bold text-slate-800 dark:text-slate-200">{{ $event->fee > 0 ? 'Rp ' . number_format($event->fee, 0, ',', '.') : 'Gratis / Infaq' }}</span>
                     </div>
                     <div class="flex items-center gap-2">
-                        <a href="{{ route('bimtek.show', $event->slug) }}" class="btn-outline text-xs py-2 px-3.5">
+                        <a href="{{ route('bimtek.show', $event->slug) }}" class="inline-flex items-center text-xs py-2 px-3.5 rounded-lg font-semibold font-heading border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white transition">
                             Detail
                         </a>
                         @if($canRegister)
@@ -421,7 +421,7 @@
                         <i data-lucide="message-circle" class="w-4 h-4"></i>
                         <span>Tanya Jadwal via WhatsApp</span>
                     </a>
-                    <a href="{{ route('program.index') }}" class="btn-outline text-xs py-2.5 px-4 inline-flex items-center gap-2">
+                    <a href="{{ route('program.index') }}" class="inline-flex items-center gap-2 text-xs py-2.5 px-4 rounded-lg font-semibold font-heading border-2 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800/80 hover:bg-slate-100 dark:hover:bg-slate-700 hover:border-slate-400 dark:hover:border-slate-500 hover:text-slate-900 dark:hover:text-white transition shadow-xs">
                         <i data-lucide="book-open" class="w-4 h-4"></i>
                         <span>Lihat Program Pelatihan</span>
                     </a>
@@ -488,7 +488,7 @@
         </div>
 
         <div class="text-center mt-10">
-            <a href="{{ route('faq') }}" class="btn-outline text-slate-800 dark:text-white border-slate-300 dark:border-slate-600 text-sm py-2.5 px-6">
+            <a href="{{ route('faq') }}" class="inline-flex items-center justify-center text-sm py-2.5 px-6 rounded-lg font-semibold font-heading border border-slate-300 dark:border-slate-600 text-slate-800 dark:text-white bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 transition">
                 Lihat Seluruh Pertanyaan (FAQ)
             </a>
         </div>
