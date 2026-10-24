@@ -270,9 +270,9 @@ class EnrollmentsTable
                     ->color('danger')
                     ->visible(fn (): bool => auth()->user()?->isSuperAdmin() === true)
                     ->requiresConfirmation()
-                    ->modalHeading('Konfirmasi Ekspor Data Sensitif (NIK)')
-                    ->modalDescription('Anda akan mengunduh seluruh data pendaftar beserta NIK lengkap untuk keperluan sertifikasi resmi. Ekspor ini akan dicatat secara permanen di Log Audit. Lanjutkan?')
-                    ->modalSubmitActionLabel('Ya, Ekspor dengan NIK')
+                    ->modalHeading('Konfirmasi Ekspor Data Sensitif (NIK) untuk LSP')
+                    ->modalDescription('Anda akan mengunduh data pendaftar beserta data sensitif (termasuk NIK lengkap) untuk dibagikan kepada lembaga penerbit sertifikat (LSP). Ekspor ini akan dicatat di Log Audit tanpa menyimpan nilai NIK, dan file diunduh langsung tanpa disimpan di server. Lanjutkan?')
+                    ->modalSubmitActionLabel('Ya, Ekspor untuk LSP')
                     ->action(function (): StreamedResponse {
                         $records = Enrollment::with(['user.profile', 'event'])->latest()->get();
 

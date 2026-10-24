@@ -68,6 +68,7 @@ class CertificatesTable
                 TextColumn::make('computed_status')
                     ->label('Status')
                     ->state(fn (Certificate $record): string => $record->status_label)
+                    ->description(fn (Certificate $record): ?string => $record->isHolderDataErased() ? 'Data Pemegang Dihapus' : null)
                     ->badge()
                     ->icon(fn (Certificate $record): string => $record->status_filament_icon)
                     ->color(fn (Certificate $record): string => $record->status_filament_color),

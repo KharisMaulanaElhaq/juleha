@@ -597,18 +597,20 @@ class CertificateModuleTest extends TestCase
         Storage::disk('private')->assertMissing($storedPath);
         $this->assertNull($cert->fresh()->file_path);
 
-        // Verifikasi status model: Berstatus "Data Pemegang Dihapus" dan TIDAK dicabut
+        // Verifikasi status model: Status masa berlaku tetap dihitung (Aktif) dan TIDAK dicabut
         $freshCert = $cert->fresh();
         $this->assertTrue($freshCert->isHolderDataErased());
         $this->assertFalse($freshCert->isRevoked());
-        $this->assertEquals(Certificate::STATUS_DATA_DIHAPUS, $freshCert->computed_status);
-        $this->assertEquals('Data Pemegang Dihapus', $freshCert->status_label);
+        $this->assertEquals(Certificate::STATUS_AKTIF, $freshCert->computed_status);
+        $this->assertEquals('Aktif', $freshCert->status_label);
+        $this->assertEquals('Data pemegang telah dihapus', $freshCert->holder_data_status_label);
 
-        // Verifikasi publik: Nomor sertifikat tetap ada dan valid, nama tampil "Data pemegang telah dihapus"
+        // Verifikasi publik: Nomor sertifikat tetap ada, status masa berlaku 'Berlaku' tetap tampil, nama tampil "Data pemegang telah dihapus"
         $verifyRes = $this->get(route('certificate.verify.code', $cert->public_code));
         $verifyRes->assertOk()
             ->assertSee('ANON-CERT-007')
             ->assertSee('Juru Sembelih Halal')
+            ->assertSee('Berlaku')
             ->assertSee('Data pemegang telah dihapus')
             ->assertDontSee('Pengguna D.')
             ->assertDontSee('Dicabut')
@@ -743,7 +745,7 @@ class CertificateModuleTest extends TestCase
         $response->assertOk()
             ->assertSee('SEARCH-NO-NAME-123')
             ->assertSee('Juru Sembelih Halal')
-            ->assertSee('Status Sertifikat: Aktif')
+            ->assertSee('Status Masa Berlaku: Aktif')
             ->assertDontSee('Bambang Trihatmodjo')
             ->assertDontSee('Bambang T.'); // Nama pemegang TIDAK boleh tampil pada pencarian nomor
     }
@@ -812,5 +814,102 @@ class CertificateModuleTest extends TestCase
         $this->assertStringContainsString('attachment', (string) $response->headers->get('Content-Disposition'));
         $this->assertEquals('nosniff', $response->headers->get('X-Content-Type-Options'));
         $this->assertStringContainsString('no-store', (string) $response->headers->get('Cache-Control'));
+    }
+
+    public function test_status_berlaku_remains_active_when_holder_data_is_erased(): void
+    {
+        $participant = User::factory()->create(['role' => User::ROLE_PARTICIPANT]);
+        $event = $this->createEvent();
+        $enrollment = Enrollment::create([
+            'user_id' => $participant->id,
+            'event_id' => $event->id,
+            'status' => EnrollmentStatus::Selesai,
+        ]);
+
+        // 1. Sertifikat masih berlaku (valid_until di masa depan) dengan data pemegang dihapus
+        $certActiveErased = Certificate::create([
+            'enrollment_id' => $enrollment->id,
+            'user_id' => $participant->id,
+            'event_id' => $event->id,
+            'result' => Certificate::RESULT_KOMPETEN,
+            'scheme_name' => 'Juru Sembelih Halal',
+            'certificate_number' => 'PDP-ACTIVE-001',
+            'issuer_name' => 'LSP Pertanian RI',
+            'issued_at' => now()->subMonths(6),
+            'valid_until' => now()->addYears(2),
+            'holder_data_erased_at' => now(),
+        ]);
+
+        $this->assertEquals(Certificate::STATUS_AKTIF, $certActiveErased->computed_status);
+        $this->assertEquals('Aktif', $certActiveErased->status_label);
+        $this->assertTrue($certActiveErased->isHolderDataErased());
+
+        $resActive = $this->get(route('certificate.verify.code', $certActiveErased->public_code));
+        $resActive->assertOk()
+            ->assertSee('Status Masa Berlaku: Aktif')
+            ->assertSee('Data Pemegang Telah Dihapus')
+            ->assertSee('Data pemegang telah dihapus');
+
+        // 2. Sertifikat sudah kedaluwarsa dengan data pemegang dihapus
+        $event2 = $this->createEvent();
+        $enrollment2 = Enrollment::create([
+            'user_id' => $participant->id,
+            'event_id' => $event2->id,
+            'status' => EnrollmentStatus::Selesai,
+        ]);
+
+        $certExpiredErased = Certificate::create([
+            'enrollment_id' => $enrollment2->id,
+            'user_id' => $participant->id,
+            'event_id' => $event2->id,
+            'result' => Certificate::RESULT_KOMPETEN,
+            'scheme_name' => 'Juru Sembelih Halal',
+            'certificate_number' => 'PDP-EXPIRED-001',
+            'issuer_name' => 'LSP Pertanian RI',
+            'issued_at' => now()->subYears(4),
+            'valid_until' => now()->subMonth(),
+            'holder_data_erased_at' => now(),
+        ]);
+
+        $this->assertEquals(Certificate::STATUS_KEDALUWARSA, $certExpiredErased->computed_status);
+        $this->assertEquals('Kedaluwarsa', $certExpiredErased->status_label);
+        $this->assertTrue($certExpiredErased->isHolderDataErased());
+
+        $resExpired = $this->get(route('certificate.verify.code', $certExpiredErased->public_code));
+        $resExpired->assertOk()
+            ->assertSee('Status Masa Berlaku: Kedaluwarsa')
+            ->assertSee('Data Pemegang Telah Dihapus')
+            ->assertSee('Data pemegang telah dihapus');
+
+        // 3. Sertifikat dicabut dengan data pemegang dihapus
+        $event3 = $this->createEvent();
+        $enrollment3 = Enrollment::create([
+            'user_id' => $participant->id,
+            'event_id' => $event3->id,
+            'status' => EnrollmentStatus::Selesai,
+        ]);
+
+        $certRevokedErased = Certificate::create([
+            'enrollment_id' => $enrollment3->id,
+            'user_id' => $participant->id,
+            'event_id' => $event3->id,
+            'result' => Certificate::RESULT_KOMPETEN,
+            'scheme_name' => 'Juru Sembelih Halal',
+            'certificate_number' => 'PDP-REVOKED-001',
+            'issuer_name' => 'LSP Pertanian RI',
+            'issued_at' => now()->subYear(),
+            'valid_until' => now()->addYears(2),
+            'revoked_at' => now(),
+            'holder_data_erased_at' => now(),
+        ]);
+
+        $this->assertEquals(Certificate::STATUS_DICABUT, $certRevokedErased->computed_status);
+        $this->assertEquals('Dicabut', $certRevokedErased->status_label);
+        $this->assertTrue($certRevokedErased->isHolderDataErased());
+
+        $resRevoked = $this->get(route('certificate.verify.code', $certRevokedErased->public_code));
+        $resRevoked->assertOk()
+            ->assertSee('Status Masa Berlaku: Dicabut')
+            ->assertSee('Data Pemegang Telah Dihapus');
     }
 }

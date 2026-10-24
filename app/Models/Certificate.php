@@ -166,7 +166,7 @@ class Certificate extends Model
 
     public function isExpiringSoon(): bool
     {
-        if (! $this->isCompetent() || ! $this->valid_until || $this->isExpired() || $this->isRevoked() || $this->isHolderDataErased()) {
+        if (! $this->isCompetent() || ! $this->valid_until || $this->isExpired() || $this->isRevoked()) {
             return false;
         }
 
@@ -179,13 +179,14 @@ class Certificate extends Model
     {
         return $this->isCompetent()
             && ! $this->isRevoked()
-            && ! $this->isHolderDataErased()
             && ! $this->isExpired()
             && ! $this->isExpiringSoon();
     }
 
     /**
-     * Hitung status turunan saat ini.
+     * Hitung status turunan masa berlaku saat ini.
+     * Status masa berlaku dihitung murni dari tanggal valid_until, kompetensi, dan status pencabutan.
+     * Tidak digantikan oleh status penghapusan data pemegang (UU PDP).
      */
     public function getComputedStatus(): string
     {
@@ -195,10 +196,6 @@ class Certificate extends Model
 
         if (! $this->isCompetent()) {
             return self::STATUS_BELUM_KOMPETEN;
-        }
-
-        if ($this->isHolderDataErased()) {
-            return self::STATUS_DATA_DIHAPUS;
         }
 
         if ($this->isExpired()) {
@@ -215,6 +212,11 @@ class Certificate extends Model
     public function getComputedStatusAttribute(): string
     {
         return $this->getComputedStatus();
+    }
+
+    public function getHolderDataStatusLabelAttribute(): ?string
+    {
+        return $this->isHolderDataErased() ? 'Data pemegang telah dihapus' : null;
     }
 
     public function getStatusLabelAttribute(): string

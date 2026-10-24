@@ -103,19 +103,31 @@
                 $isExpired = $certificate->isExpired();
                 $isExpiringSoon = $certificate->isExpiringSoon();
                 $isHolderErased = $certificate->isHolderDataErased();
-                $status = $certificate->computed_status;
                 $showHolderName = (! $isSearchByNumber) && (! $isRevoked);
+
+                // Status masa berlaku dihitung murni dari tanggal valid_until dan status pencabutan (UU PDP)
+                $topBarBg = $isRevoked ? 'bg-red-600 text-white' : ($isExpired ? 'bg-rose-600 text-white' : ($isExpiringSoon ? 'bg-amber-600 text-white' : 'bg-emerald-600 text-white'));
+                $borderCard = $isRevoked ? 'border-red-500' : ($isExpired ? 'border-rose-500' : ($isExpiringSoon ? 'border-amber-500' : 'border-emerald-500'));
             @endphp
 
-            <div class="rounded-3xl bg-white dark:bg-slate-800 shadow-2xl border-2 {{ $isRevoked ? 'border-red-500' : ($isHolderErased ? 'border-slate-500' : 'border-emerald-500') }} overflow-hidden">
+            <div class="rounded-3xl bg-white dark:bg-slate-800 shadow-2xl border-2 {{ $borderCard }} overflow-hidden">
                 
-                <!-- Status Top Bar -->
-                <div class="px-6 py-4 {{ $isRevoked ? 'bg-red-600 text-white' : ($isHolderErased ? 'bg-slate-700 text-white' : ($isExpired ? 'bg-rose-600 text-white' : ($isExpiringSoon ? 'bg-amber-600 text-white' : 'bg-emerald-600 text-white'))) }} flex items-center justify-between gap-3">
+                <!-- Status Top Bar: Status Masa Berlaku & Keterangan Pemegang Terpisah -->
+                <div class="px-6 py-4 {{ $topBarBg }} flex flex-wrap items-center justify-between gap-3">
                     <div class="flex items-center gap-2 font-bold text-sm uppercase tracking-wider">
-                        <i data-lucide="{{ $isRevoked ? 'alert-triangle' : ($isHolderErased ? 'user-x' : ($isExpired ? 'x-circle' : 'check-circle-2')) }}" class="w-5 h-5"></i>
-                        <span>Status Sertifikat: {{ $certificate->status_label }}</span>
+                        <i data-lucide="{{ $isRevoked ? 'alert-triangle' : ($isExpired ? 'x-circle' : 'check-circle-2') }}" class="w-5 h-5"></i>
+                        <span>Status Masa Berlaku: {{ $certificate->status_label }}</span>
                     </div>
-                    <span class="text-xs opacity-90 hidden sm:inline">Basis Data DPD JULEHA Brebes</span>
+
+                    <div class="flex items-center gap-2">
+                        @if($isHolderErased)
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-white/20 backdrop-blur-md border border-white/30 text-white">
+                                <i data-lucide="user-x" class="w-3.5 h-3.5"></i>
+                                <span>Data Pemegang Telah Dihapus</span>
+                            </span>
+                        @endif
+                        <span class="text-xs opacity-90 hidden sm:inline">Basis Data DPD JULEHA Brebes</span>
+                    </div>
                 </div>
 
                 <div class="p-6 sm:p-8 space-y-6">
@@ -186,6 +198,16 @@
                             @if($certificate->revoked_at)
                                 <p class="text-[11px] text-red-700 dark:text-red-300">Tanggal Pencabutan: {{ $certificate->revoked_at->translatedFormat('d F Y') }}</p>
                             @endif
+                        </div>
+                    @endif
+
+                    @if($isHolderErased)
+                        <div class="p-4 rounded-2xl bg-slate-100 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 text-xs text-slate-700 dark:text-slate-300 space-y-1">
+                            <p class="font-bold flex items-center gap-1.5 text-slate-900 dark:text-white">
+                                <i data-lucide="shield-check" class="w-4 h-4 text-emerald-600 dark:text-emerald-400"></i>
+                                <span>Keterangan Pelindungan Data Pribadi (UU PDP)</span>
+                            </p>
+                            <p>Data pemegang telah dihapus dari basis data aktif sesuai permohonan penghapusan data. Catatan nomor sertifikat dan masa berlakunya tetap dipertahankan untuk integritas verifikasi resmi.</p>
                         </div>
                     @endif
 
