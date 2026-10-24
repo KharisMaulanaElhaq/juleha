@@ -25,15 +25,20 @@ class GoogleAuthController extends Controller
 
         $driver = Socialite::driver('google')->scopes(['openid', 'email', 'profile']);
 
-        // Di lingkungan lokal non-test, samakan host redirect URI dengan host yang sedang dibuka di browser
-        // (127.0.0.1 vs localhost) agar sesi/cookie tidak terputus karena beda origin.
-        if (app()->environment('local') && ! app()->runningUnitTests()) {
+        if (! app()->runningUnitTests()) {
             $configured = config('services.google.redirect');
             if ($configured) {
-                $configuredHost = parse_url($configured, PHP_URL_HOST);
-                $requestHost = $request->getHost();
-                if ($configuredHost && in_array($configuredHost, ['127.0.0.1', 'localhost'], true) && $configuredHost !== $requestHost) {
-                    $driver->redirectUrl(str_replace($configuredHost, $requestHost, $configured));
+                $configured = preg_replace('#(?<!:)//+#', '/', (string) $configured);
+                $driver->redirectUrl($configured);
+
+                // Di lingkungan lokal non-test, samakan host redirect URI dengan host yang sedang dibuka di browser
+                // (127.0.0.1 vs localhost) agar sesi/cookie tidak terputus karena beda origin.
+                if (app()->environment('local')) {
+                    $configuredHost = parse_url($configured, PHP_URL_HOST);
+                    $requestHost = $request->getHost();
+                    if ($configuredHost && in_array($configuredHost, ['127.0.0.1', 'localhost'], true) && $configuredHost !== $requestHost) {
+                        $driver->redirectUrl(str_replace($configuredHost, $requestHost, $configured));
+                    }
                 }
             }
         }
@@ -74,14 +79,19 @@ class GoogleAuthController extends Controller
 
         $driver = Socialite::driver('google');
 
-        // Samakan host redirect jika di lingkungan lokal
-        if (app()->environment('local') && ! app()->runningUnitTests()) {
+        if (! app()->runningUnitTests()) {
             $configured = config('services.google.redirect');
             if ($configured) {
-                $configuredHost = parse_url($configured, PHP_URL_HOST);
-                $requestHost = $request->getHost();
-                if ($configuredHost && in_array($configuredHost, ['127.0.0.1', 'localhost'], true) && $configuredHost !== $requestHost) {
-                    $driver->redirectUrl(str_replace($configuredHost, $requestHost, $configured));
+                $configured = preg_replace('#(?<!:)//+#', '/', (string) $configured);
+                $driver->redirectUrl($configured);
+
+                // Samakan host redirect jika di lingkungan lokal
+                if (app()->environment('local')) {
+                    $configuredHost = parse_url($configured, PHP_URL_HOST);
+                    $requestHost = $request->getHost();
+                    if ($configuredHost && in_array($configuredHost, ['127.0.0.1', 'localhost'], true) && $configuredHost !== $requestHost) {
+                        $driver->redirectUrl(str_replace($configuredHost, $requestHost, $configured));
+                    }
                 }
             }
         }

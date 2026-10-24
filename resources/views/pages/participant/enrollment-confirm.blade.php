@@ -101,7 +101,10 @@
             <form action="{{ route('enrollment.store', $event->slug) }}" method="POST" class="pt-3 border-t portal-border space-y-3">
                 @csrf
                 <p class="text-[11px] portal-text-muted leading-relaxed">
-                    Dengan mendaftar, status pendaftaran Anda akan dicatat sebagai <strong>Menunggu Konfirmasi</strong> dan akan ditinjau oleh panitia DPD JULEHA Brebes.
+                    Dengan mendaftar, Anda menyetujui ketentuan pada 
+                    <a href="{{ route('syarat-ketentuan') }}" target="_blank" class="text-[var(--primary)] font-semibold underline">Syarat &amp; Ketentuan</a> serta 
+                    <a href="{{ route('kebijakan-privasi') }}" target="_blank" class="text-[var(--primary)] font-semibold underline">Kebijakan Privasi</a>. 
+                    Status pendaftaran Anda akan dicatat sebagai <strong>Menunggu Konfirmasi</strong> dan akan ditinjau oleh panitia DPD JULEHA Brebes.
                 </p>
 
                 <div class="flex items-center justify-end gap-2.5 pt-1">

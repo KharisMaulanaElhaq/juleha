@@ -58,8 +58,8 @@
     <!-- AOS CSS -->
     <link rel="stylesheet" href="{{ asset('assets/aos.css') }}" />
 
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <!-- Lucide Icons (Self-Hosted) -->
+    <script src="{{ asset('assets/lucide.min.js') }}"></script>
 
     <!-- Theme & Font Size Initialization Script -->
     <script>
@@ -162,7 +162,7 @@
             @php
                 $waRaw = setting('whatsapp_number', '6282324448886');
                 $waNumber = function_exists('normalize_wa_number') ? normalize_wa_number($waRaw) : preg_replace('/\D/', '', $waRaw);
-                $waText = urlencode('Halo Panitia DPD JULEHA Brebes, saya ' . auth()->user()->name . '. Saya butuh bantuan terkait absensi / kegiatan pelatihan.');
+                $waText = urlencode('Halo Panitia DPD JULEHA Brebes, saya butuh bantuan terkait absensi / kegiatan pelatihan.');
             @endphp
             <aside aria-label="Bantuan Panitia" class="fixed bottom-6 right-4 sm:right-6 z-50">
                 <a href="https://wa.me/{{ $waNumber }}?text={{ $waText }}"

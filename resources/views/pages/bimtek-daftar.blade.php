@@ -197,7 +197,7 @@
                             <input type="checkbox" name="consent" id="consent" value="1" required {{ old('consent') ? 'checked' : '' }}
                                 class="mt-1 w-4 h-4 rounded text-brand focus:ring-brand border-gray-300" />
                             <span class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                                <strong>Persetujuan Pelindungan Data Pribadi:</strong> Saya menyatakan bahwa data yang diisikan adalah benar. Saya memberikan persetujuan kepada DPD JULEHA Kabupaten Brebes untuk menggunakan data ini demi keperluan administrasi bimtek, penerbitan sertifikat, dan komunikasi kegiatan organisasi sesuai <a href="{{ route('kebijakan-privasi') }}" target="_blank" class="text-brand dark:text-brand-dark underline font-semibold">Kebijakan Privasi</a>. <span class="text-rose-500 font-bold">*</span>
+                                <strong>Persetujuan Pelindungan Data Pribadi:</strong> Saya menyatakan bahwa data yang diisikan adalah benar. Saya memberikan persetujuan kepada DPD JULEHA Kabupaten Brebes untuk menggunakan data ini demi keperluan administrasi bimtek, penerbitan sertifikat, dan komunikasi kegiatan organisasi sesuai <a href="{{ route('syarat-ketentuan') }}" target="_blank" class="text-brand dark:text-brand-dark underline font-semibold">Syarat &amp; Ketentuan</a> serta <a href="{{ route('kebijakan-privasi') }}" target="_blank" class="text-brand dark:text-brand-dark underline font-semibold">Kebijakan Privasi</a>. <span class="text-rose-500 font-bold">*</span>
                             </span>
                         </label>
                     </div>

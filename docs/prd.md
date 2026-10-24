@@ -2,11 +2,11 @@
 
 | | |
 |---|---|
-| Versi | 0.2 (draft) |
-| Tanggal | 13 Oktober 2026 |
-| Status | Dalam pengembangan, menunggu konfirmasi pengurus DPD untuk beberapa keputusan (lihat bagian 13) |
+| Versi | 0.3 (draft) |
+| Tanggal | 24 Oktober 2026 |
+| Status | Dalam pengembangan, modul kepatuhan privasi (UU PDP) dan legalitas telah diterapkan |
 | Template dasar | CardioCare (ThemeWagon, Tailwind CSS + HTML5, gratis), sudah diubah ke tema JULEHA |
-| Dokumen pendamping | `architecture.md` |
+| Dokumen pendamping | `architecture.md`, `data-pribadi.md`, `ropa.md`, `retensi-data.md` |
 
 ## Riwayat perubahan
 
@@ -14,6 +14,7 @@
 |---|---|
 | 0.1 | Company profile dan pendaftaran bimtek |
 | 0.2 | Portal peserta (login Google, profil, dashboard), empat jenis kegiatan, delapan program, materi per kegiatan, presensi QR, **NIK wajib** untuk sertifikat, peran dan hak akses, peta tahap pengembangan |
+| 0.3 | Modul Privasi dan Kepatuhan Hukum (UU PDP): Dokumen Hukum Dinamis (Filament), Persetujuan Granular Berbasis Tujuan (`consents`), Saluran Hak Data Subjek (`data_requests`), Anonimisasi Akun Terpusat, Tab Pengaturan Legalitas & Privasi, dan Self-hosted Aset Font/Icon |
 
 > Dokumen ini berisi asumsi. Poin yang perlu dikonfirmasi ke pengurus DPD ada di **bagian 13**.
 
@@ -349,4 +350,5 @@ Pertanyaan terbuka yang **masih menunggu kepastian**:
 | 3 | Materi per kegiatan & unduhan privat | Selesai |
 | 4 | Presensi QR dan rekapitulasi kehadiran | Selesai |
 | 5 | Hasil kompetensi dan sertifikat (catat hasil, simpan PDF LSP, unduh privat, verifikasi publik, pengingat 3 tahun) | Selesai |
+| 5.5 | Kepatuhan Privasi (UU PDP) & Legalitas Organisasi: Dokumen hukum terkelola admin (5 dokumen), persetujuan granular (`consents`), saluran hak subjek data (`data_requests`), service anonimisasi, tab legalitas & privasi, self-host aset privat | Selesai |
 | 6 | Pengujian menyeluruh, pengisian konten, deploy produksi (HTTPS, cron `schedule:run`, backup) | Sedang berjalan |

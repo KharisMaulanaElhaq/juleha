@@ -211,12 +211,19 @@
                         </div>
                     @endif
 
-                    <!-- Catatan Kepatuhan Privasi (UU PDP) -->
-                    <div class="pt-4 border-t border-slate-100 dark:border-slate-700/60 flex items-start gap-2.5 text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                        <i data-lucide="shield" class="w-4 h-4 text-slate-400 shrink-0 mt-0.5"></i>
-                        <span>
-                            Sesuai ketentuan UU No. 27 Tahun 2022 tentang Pelindungan Data Pribadi (UU PDP), identitas pemegang sertifikat dilindungi, nama disamarkan, dan data kontak/domisili tidak dipublikasikan ke publik.
-                        </span>
+                    <!-- Catatan Kepatuhan Privasi (UU PDP) & Disclaimer -->
+                    <div class="pt-4 border-t border-slate-100 dark:border-slate-700/60 flex items-start justify-between flex-wrap gap-2 text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                        <div class="flex items-start gap-2.5 max-w-xl">
+                            <i data-lucide="shield" class="w-4 h-4 text-slate-400 shrink-0 mt-0.5"></i>
+                            <span>
+                                Sesuai ketentuan UU No. 27 Tahun 2022 tentang Pelindungan Data Pribadi (UU PDP), identitas pemegang sertifikat dilindungi. Rujukan: 
+                                <a href="{{ route('kebijakan-privasi') }}" class="underline hover:text-slate-700 dark:hover:text-slate-200">Kebijakan Privasi</a> dan 
+                                <a href="{{ route('disclaimer') }}" class="underline hover:text-slate-700 dark:hover:text-slate-200">Disclaimer</a>.
+                            </span>
+                        </div>
+                        <a href="{{ route('data-rights.create') }}" class="text-xs text-purple-600 dark:text-purple-400 hover:underline font-medium">
+                            Permintaan Hak Data &rarr;
+                        </a>
                     </div>
 
                 </div>

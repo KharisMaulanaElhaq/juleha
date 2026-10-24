@@ -126,7 +126,7 @@ class PagesTest extends TestCase
             '/blog.html' => '/berita',
             '/faq.html' => '/faq',
             '/privacy-policy' => '/kebijakan-privasi',
-            '/terms-and-conditions' => '/tentang',
+            '/terms-and-conditions' => '/syarat-ketentuan',
             '/program/pelatihan-dasar' => '/program/bimtek-pelatihan',
         ];
 

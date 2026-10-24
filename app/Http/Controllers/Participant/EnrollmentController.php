@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Participant;
 
 use App\Enums\EventType;
 use App\Http\Controllers\Controller;
+use App\Models\Consent;
 use App\Models\Enrollment;
 use App\Models\Event;
 use App\Services\EnrollmentService;
@@ -51,12 +52,25 @@ class EnrollmentController extends Controller
             return redirect()->route('participant.profile')->with('info', 'Nomor Induk Kependudukan (NIK) dan data profil wajib dilengkapi sebelum mendaftar kegiatan, karena digunakan untuk penerbitan sertifikat.');
         }
 
-        // Validasi pembaruan persetujuan data untuk sertifikasi kompetensi
-        if ($event->type === EventType::SertifikasiKompetensi && ! $profile->hasCurrentConsent()) {
-            session(['url.intended' => route('enrollment.create', $event->slug)]);
+        // Validasi persetujuan pemrosesan akun & kegiatan
+        if (! Consent::hasGranted($user->id, Consent::PURPOSE_ACCOUNT_AND_ACTIVITY)) {
+            return redirect()->route('participant.privacy.index')
+                ->with('error', 'Persetujuan pemrosesan data akun dan kegiatan belum aktif atau telah Anda tarik. Silakan aktifkan kembali persetujuan tersebut untuk dapat mendaftar kegiatan.');
+        }
 
-            return redirect()->route('participant.profile', ['step' => 2])
-                ->with('info', 'Pendaftaran uji sertifikasi kompetensi memerlukan pembaruan persetujuan data ke '.setting('cert_issuer_name', 'LSP Pertanian RI').'. Silakan perbarui persetujuan data Anda.');
+        // Validasi pembaruan persetujuan data untuk sertifikasi kompetensi
+        if ($event->type === EventType::SertifikasiKompetensi) {
+            if (! $profile->hasCurrentConsent()) {
+                session(['url.intended' => route('enrollment.create', $event->slug)]);
+
+                return redirect()->route('participant.profile', ['step' => 2])
+                    ->with('info', 'Pendaftaran uji sertifikasi kompetensi memerlukan pembaruan persetujuan data ke '.setting('cert_issuer_name', 'LSP Pertanian RI').'. Silakan perbarui persetujuan data Anda.');
+            }
+
+            if (! Consent::hasGranted($user->id, Consent::PURPOSE_NIK_CERTIFICATE) || ! Consent::hasGranted($user->id, Consent::PURPOSE_SHARE_TO_LSP)) {
+                return redirect()->route('participant.privacy.index')
+                    ->with('error', 'Pendaftaran uji sertifikasi memerlukan persetujuan penerusan data NIK dan data sertifikasi ke Lembaga Sertifikasi Profesi (LSP/BNSP). Silakan aktifkan persetujuan tersebut di bawah ini.');
+            }
         }
 
         // Cek jika sudah terdaftar

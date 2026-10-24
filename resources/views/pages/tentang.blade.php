@@ -176,6 +176,125 @@
     </div>
 </section>
 
+<!-- ===================== LEGALITAS ORGANISASI ===================== -->
+@if(($settings['legal_show_in_about'] ?? '1') === '1' && (filled($settings['legal_entity_name'] ?? null) || filled($settings['sk_legalitas'] ?? null)))
+<section id="legalitas" class="section-padding bg-white dark:bg-slate-900 border-b border-gray-100 dark:border-slate-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <x-section-header
+            tag="Dasar Hukum"
+            tagIcon="scale"
+            title="Legalitas"
+            highlight="Organisasi"
+            subtitle="Transparansi legalitas badan hukum resmi dan kelembagaan DPD JULEHA Kabupaten Brebes."
+        />
+
+        <div class="grid lg:grid-cols-12 gap-8 items-start">
+            <!-- Informasi Badan Hukum & SK -->
+            <div class="lg:col-span-7 space-y-6">
+                <div class="p-6 sm:p-8 rounded-3xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 space-y-4">
+                    <div class="flex items-center gap-3 pb-4 border-b border-slate-200 dark:border-slate-700">
+                        <div class="w-12 h-12 bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 rounded-2xl flex items-center justify-center flex-shrink-0">
+                            <i data-lucide="building-library" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <span class="text-xs uppercase font-bold tracking-wider text-purple-600 dark:text-purple-400 block">Badan Hukum Resmi</span>
+                            <h3 class="font-heading font-extrabold text-lg sm:text-xl text-slate-900 dark:text-white">
+                                {{ $settings['legal_entity_name'] ?? setting('site_name', 'DPD JULEHA Kabupaten Brebes') }}
+                            </h3>
+                        </div>
+                    </div>
+
+                    <div class="grid sm:grid-cols-2 gap-4 text-xs sm:text-sm">
+                        <div class="p-4 rounded-2xl bg-white dark:bg-slate-700/50 border border-slate-200/80 dark:border-slate-600/60">
+                            <span class="text-slate-400 block text-xs">Nomor SK Pengukuhan / Kemenkumham</span>
+                            <strong class="font-mono text-slate-800 dark:text-slate-100 block mt-1">
+                                {{ $settings['sk_legalitas'] ?? '-' }}
+                            </strong>
+                        </div>
+
+                        @if(filled($settings['legal_sk_date'] ?? null))
+                        <div class="p-4 rounded-2xl bg-white dark:bg-slate-700/50 border border-slate-200/80 dark:border-slate-600/60">
+                            <span class="text-slate-400 block text-xs">Tanggal Penetapan SK</span>
+                            <strong class="text-slate-800 dark:text-slate-100 block mt-1">
+                                {{ $settings['legal_sk_date'] }}
+                            </strong>
+                        </div>
+                        @endif
+
+                        @if(($settings['legal_show_npwp'] ?? '0') === '1' && filled($settings['legal_npwp'] ?? null))
+                        <div class="p-4 rounded-2xl bg-white dark:bg-slate-700/50 border border-slate-200/80 dark:border-slate-600/60 sm:col-span-2">
+                            <span class="text-slate-400 block text-xs">NPWP Organisasi</span>
+                            <strong class="font-mono text-slate-800 dark:text-slate-100 block mt-1">
+                                {{ $settings['legal_npwp'] }}
+                            </strong>
+                        </div>
+                        @endif
+                    </div>
+
+                    @php
+                        $docsList = ! empty($settings['legal_documents_list']) && is_array(json_decode($settings['legal_documents_list'], true)) ? json_decode($settings['legal_documents_list'], true) : [];
+                        $publicDocs = array_filter($docsList, fn($d) => ! empty($d['is_public']));
+                    @endphp
+
+                    @if(! empty($publicDocs))
+                        <div class="pt-4 border-t border-slate-200 dark:border-slate-700">
+                            <span class="text-xs font-bold uppercase tracking-wider text-slate-500 block mb-2">Salinan Berkas Resmi:</span>
+                            <div class="space-y-2">
+                                @foreach($publicDocs as $doc)
+                                    <a href="{{ $doc['file_url'] ?? '#' }}" target="_blank" rel="noopener noreferrer" class="flex items-center justify-between p-3 rounded-xl bg-white dark:bg-slate-700/40 border border-slate-200 dark:border-slate-600 hover:border-purple-400 transition-colors text-xs font-semibold text-purple-700 dark:text-purple-300">
+                                        <span class="flex items-center gap-2">
+                                            <i data-lucide="file-text" class="w-4 h-4"></i>
+                                            {{ $doc['title'] ?? 'Dokumen Legalitas' }}
+                                        </span>
+                                        <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                                    </a>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+                </div>
+            </div>
+
+            <!-- Pelindung, Dewan & Batasan Peran -->
+            <div class="lg:col-span-5 space-y-6">
+                @if(isset($pelindungPembina) && $pelindungPembina->isNotEmpty())
+                    <div class="p-6 rounded-3xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 space-y-3">
+                        <h4 class="font-heading font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
+                            <i data-lucide="users" class="w-4 h-4 text-purple-600 dark:text-purple-400"></i>
+                            Pelindung &amp; Dewan Pembina
+                        </h4>
+                        <div class="space-y-2.5 text-xs sm:text-sm">
+                            @foreach($pelindungPembina as $advisor)
+                                <div class="flex items-center justify-between p-2.5 rounded-xl bg-white dark:bg-slate-700/40 border border-slate-200/60 dark:border-slate-600/40">
+                                    <span class="font-bold text-slate-800 dark:text-white">{{ $advisor->name }}</span>
+                                    <span class="text-xs text-purple-600 dark:text-purple-400 font-medium">{{ $advisor->position }}</span>
+                                </div>
+                            @endforeach
+                        </div>
+                        <div class="pt-2 text-right">
+                            <a href="{{ route('pengurus') }}" class="text-xs font-semibold text-purple-600 dark:text-purple-400 hover:underline inline-flex items-center gap-1">
+                                Lihat Struktur Lengkap <i data-lucide="arrow-right" class="w-3 h-3"></i>
+                            </a>
+                        </div>
+                    </div>
+                @endif
+
+                <!-- Catatan Batasan Peran DPD terhadap BNSP -->
+                <div class="p-5 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60 text-xs text-amber-900 dark:text-amber-200 space-y-2">
+                    <div class="font-bold flex items-center gap-1.5">
+                        <i data-lucide="shield-alert" class="w-4 h-4 text-amber-600 dark:text-amber-400"></i>
+                        Batasan Peran Organisasi &amp; Sertifikasi BNSP
+                    </div>
+                    <p class="leading-relaxed">
+                        DPD JULEHA Kabupaten Brebes bertindak sebagai penyelenggara bimbingan teknis (bimtek) dan fasilitator pembinaan juru sembelih halal di tingkat daerah. Sertifikat kompetensi profesi negara berstandar BNSP diterbitkan secara independen oleh Lembaga Sertifikasi Profesi (LSP) mitra terlisensi resmi sesuai hasil uji kompetensi.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+@endif
+
 <!-- ===================== NILAI-NILAI ORGANISASI ===================== -->
 <section class="section-padding bg-white dark:bg-slate-900">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

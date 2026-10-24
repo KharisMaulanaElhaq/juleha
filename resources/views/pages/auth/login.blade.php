@@ -115,13 +115,17 @@
                     </label>
                 </div>
 
-                <!-- Keterangan Privasi Dua Baris -->
+                <!-- Keterangan Privasi & Syarat -->
                 <div class="pt-2 border-t portal-border text-[13px] leading-relaxed text-slate-600 dark:text-slate-300">
-                    Kami hanya menerima nama, email, dan foto profil dari akun Google Anda. Kata sandi tidak pernah kami lihat.
+                    Dengan masuk, Anda menyetujui
+                    <a href="{{ route('syarat-ketentuan') }}" class="font-medium text-[var(--primary)] hover:underline inline-flex items-center gap-0.5">
+                        <span>Syarat &amp; Ketentuan</span>
+                    </a>
+                    serta
                     <a href="{{ route('kebijakan-privasi') }}" class="font-medium text-[var(--primary)] hover:underline inline-flex items-center gap-0.5">
                         <span>Kebijakan Privasi</span>
                         <i data-lucide="arrow-up-right" class="w-3 h-3"></i>
-                    </a>
+                    </a>.
                 </div>
             </div>
 

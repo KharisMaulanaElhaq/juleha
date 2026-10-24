@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Participant;
 
 use App\Http\Controllers\Controller;
 use App\Models\Attendance;
+use App\Models\Consent;
 use App\Models\ParticipantProfile;
 use App\Rules\ValidNik;
 use Illuminate\Http\RedirectResponse;
@@ -149,10 +150,19 @@ class ProfileController extends Controller
         if ($step == '2') {
             $isNikLocked = $profile && filled($profile->nik) && $user->enrollments()->where('status', 'selesai')->exists();
 
+            $hasGranular = $request->has('consent_akun_dan_kegiatan') || $request->has('consent_nik_sertifikat') || $request->has('consent_bagikan_ke_lsp');
+
             $rules = [
                 'full_name_ktp' => ['required', 'string', 'max:255'],
-                'consent' => ['required', 'accepted'],
             ];
+
+            if ($hasGranular) {
+                $rules['consent_akun_dan_kegiatan'] = ['required', 'accepted'];
+                $rules['consent_nik_sertifikat'] = ['required', 'accepted'];
+                $rules['consent_bagikan_ke_lsp'] = ['required', 'accepted'];
+            } else {
+                $rules['consent'] = ['required', 'accepted'];
+            }
 
             if (! $isNikLocked) {
                 if ($profile && filled($profile->nik)) {
@@ -165,8 +175,23 @@ class ProfileController extends Controller
             $validated = $request->validate($rules, [
                 'full_name_ktp.required' => 'Nama lengkap sesuai KTP wajib diisi.',
                 'consent.accepted' => 'Anda wajib mencentang persetujuan penggunaan data pribadi untuk pencetakan sertifikat.',
+                'consent_akun_dan_kegiatan.accepted' => 'Anda wajib menyetujui pemrosesan data akun untuk keikutsertaan pelatihan.',
+                'consent_nik_sertifikat.accepted' => 'Anda wajib menyetujui validasi NIK untuk pencetakan sertifikat.',
+                'consent_bagikan_ke_lsp.accepted' => 'Anda wajib menyetujui penerusan data ke lembaga sertifikasi resmi (LSP).',
                 'nik.required' => 'NIK harus 16 angka untuk pencetakan sertifikat.',
             ]);
+
+            // Catat persetujuan per tujuan ke tabel consents
+            Consent::grantPurpose($user->id, Consent::PURPOSE_ACCOUNT_AND_ACTIVITY, ParticipantProfile::CURRENT_CONSENT_VERSION);
+            Consent::grantPurpose($user->id, Consent::PURPOSE_NIK_CERTIFICATE, ParticipantProfile::CURRENT_CONSENT_VERSION);
+            Consent::grantPurpose($user->id, Consent::PURPOSE_SHARE_TO_LSP, ParticipantProfile::CURRENT_CONSENT_VERSION);
+
+            if ($request->boolean('consent_komunikasi_pengumuman')) {
+                Consent::grantPurpose($user->id, Consent::PURPOSE_COMMUNICATION_ANNOUNCEMENTS, ParticipantProfile::CURRENT_CONSENT_VERSION);
+            }
+            if ($request->boolean('consent_foto_dokumentasi')) {
+                Consent::grantPurpose($user->id, Consent::PURPOSE_PHOTO_DOCUMENTATION, ParticipantProfile::CURRENT_CONSENT_VERSION);
+            }
 
             $step2Data = [
                 'full_name_ktp' => trim($validated['full_name_ktp']),

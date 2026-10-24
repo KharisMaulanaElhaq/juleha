@@ -320,27 +320,83 @@
                             @endif
                         </div>
 
-                        <!-- Kotak Persetujuan Data Pribadi & Penerusan Lembaga Sertifikasi -->
-                        <div id="persetujuan-data" class="p-4 rounded-xl portal-surface-subtle border {{ ($profile && ! $profile->hasCurrentConsent()) ? 'border-amber-400 dark:border-amber-600 bg-amber-50/50 dark:bg-amber-950/20' : 'portal-border' }} space-y-2">
-                            <label class="flex items-start gap-3 cursor-pointer select-none">
-                                <input type="checkbox" id="consent" name="consent" value="1"
-                                       {{ old('consent', ($profile?->hasCurrentConsent() ?? false)) ? 'checked' : '' }} required
-                                       class="w-4 h-4 mt-1 rounded text-[var(--primary)] focus:ring-[var(--primary)] border portal-border shrink-0" />
-                                <div class="text-xs portal-text leading-relaxed space-y-1.5">
-                                    <div class="font-bold text-slate-800 dark:text-slate-200">
-                                        Pernyataan Persetujuan Penggunaan & Penerusan Data:
-                                    </div>
-                                    <p>
-                                        Saya menyatakan data identitas di atas adalah benar. Saya menyetujui data nama sesuai KTP, NIK, dan data kontak saya diteruskan kepada <strong>{{ setting('cert_issuer_name', 'LSP Pertanian RI') }}</strong> semata-mata untuk keperluan uji kompetensi dan penerbitan sertifikat resmi.
-                                    </p>
-                                    <p class="portal-text-muted text-[11px]">
-                                        Hasil sertifikasi dicatat oleh DPD JULEHA Brebes untuk keperluan verifikasi keabsahan. Saya memiliki hak untuk melihat (akses), memperbaiki (koreksi), maupun meminta penghapusan data pribadi saya sesuai ketentuan yang berlaku.
-                                    </p>
+                        <!-- Kotak Persetujuan Data Pribadi Per Tujuan (UU PDP) -->
+                        <div id="persetujuan-data" class="p-5 rounded-2xl portal-surface-subtle border {{ ($profile && ! $profile->hasCurrentConsent()) ? 'border-amber-400 dark:border-amber-600 bg-amber-50/50 dark:bg-amber-950/20' : 'portal-border' }} space-y-4">
+                            <div class="border-b portal-border pb-2">
+                                <div class="font-bold text-xs sm:text-sm text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                                    <i data-lucide="shield-check" class="w-4 h-4 text-purple-600 dark:text-purple-400"></i>
+                                    Persetujuan Pemrosesan Data Pribadi Per Tujuan (UU PDP)
+                                </div>
+                                <p class="text-[11px] portal-text-muted mt-1 leading-relaxed">
+                                    Centang masing-masing persetujuan di bawah ini. Dokumen rujukan: 
+                                    <a href="{{ route('kebijakan-privasi') }}" target="_blank" class="text-purple-600 dark:text-purple-400 font-semibold underline">Kebijakan Privasi</a> dan 
+                                    <a href="{{ route('syarat-ketentuan') }}" target="_blank" class="text-purple-600 dark:text-purple-400 font-semibold underline">Syarat &amp; Ketentuan</a>.
+                                </p>
+                            </div>
+
+                            <!-- 1. Akun dan Kegiatan (Wajib) -->
+                            <label class="flex items-start gap-3 cursor-pointer select-none text-xs portal-text">
+                                <input type="checkbox" id="consent_akun_dan_kegiatan" name="consent_akun_dan_kegiatan" value="1"
+                                       {{ old('consent_akun_dan_kegiatan') ? 'checked' : '' }} required
+                                       class="w-4 h-4 mt-0.5 rounded text-[var(--primary)] focus:ring-[var(--primary)] border portal-border shrink-0" />
+                                <div class="leading-relaxed">
+                                    <strong class="text-slate-800 dark:text-slate-200">1. Akun &amp; Pelatihan (Wajib):</strong>
+                                    <span>Saya menyetujui pemrosesan data akun Google, email, dan kontak saya untuk layanan pendaftaran dan presensi bimtek. <em>(Akibat bila tidak disetujui: akun tidak dapat mendaftar kegiatan).</em></span>
                                 </div>
                             </label>
-                            @error('consent')
-                                <p class="text-xs text-rose-600 font-medium">{{ $message }}</p>
+                            @error('consent_akun_dan_kegiatan')
+                                <p class="text-xs text-rose-600 font-medium pl-7">{{ $message }}</p>
                             @enderror
+
+                            <!-- 2. NIK untuk Sertifikat (Wajib) -->
+                            <label class="flex items-start gap-3 cursor-pointer select-none text-xs portal-text">
+                                <input type="checkbox" id="consent_nik_sertifikat" name="consent_nik_sertifikat" value="1"
+                                       {{ old('consent_nik_sertifikat') ? 'checked' : '' }} required
+                                       class="w-4 h-4 mt-0.5 rounded text-[var(--primary)] focus:ring-[var(--primary)] border portal-border shrink-0" />
+                                <div class="leading-relaxed">
+                                    <strong class="text-slate-800 dark:text-slate-200">2. Validasi NIK Sertifikat (Wajib):</strong>
+                                    <span>Saya menyatakan nama KTP dan NIK adalah benar serta menyetujui pemrosesannya secara terenkripsi untuk validasi pencetakan sertifikat resmi. <em>(Akibat bila tidak disetujui: sertifikat resmi tidak dapat diterbitkan).</em></span>
+                                </div>
+                            </label>
+                            @error('consent_nik_sertifikat')
+                                <p class="text-xs text-rose-600 font-medium pl-7">{{ $message }}</p>
+                            @enderror
+
+                            <!-- 3. Penerusan ke LSP (Wajib) -->
+                            <label class="flex items-start gap-3 cursor-pointer select-none text-xs portal-text">
+                                <input type="checkbox" id="consent_bagikan_ke_lsp" name="consent_bagikan_ke_lsp" value="1"
+                                       {{ old('consent_bagikan_ke_lsp') ? 'checked' : '' }} required
+                                       class="w-4 h-4 mt-0.5 rounded text-[var(--primary)] focus:ring-[var(--primary)] border portal-border shrink-0" />
+                                <div class="leading-relaxed">
+                                    <strong class="text-slate-800 dark:text-slate-200">3. Penerusan ke Lembaga Sertifikasi (Wajib):</strong>
+                                    <span>Saya menyetujui data nama KTP dan NIK diteruskan ke lembaga sertifikasi resmi mitra DPD ({{ setting('cert_issuer_name', 'LSP Pertanian RI') }}) semata-mata untuk pendaftaran uji kompetensi nasional. <em>(Akibat bila tidak disetujui: tidak dapat diikutsertakan dalam uji kompetensi BNSP).</em></span>
+                                </div>
+                            </label>
+                            @error('consent_bagikan_ke_lsp')
+                                <p class="text-xs text-rose-600 font-medium pl-7">{{ $message }}</p>
+                            @enderror
+
+                            <!-- 4. Komunikasi & Pengumuman (Opsional) -->
+                            <label class="flex items-start gap-3 cursor-pointer select-none text-xs portal-text">
+                                <input type="checkbox" id="consent_komunikasi_pengumuman" name="consent_komunikasi_pengumuman" value="1"
+                                       {{ old('consent_komunikasi_pengumuman') ? 'checked' : '' }}
+                                       class="w-4 h-4 mt-0.5 rounded text-[var(--primary)] focus:ring-[var(--primary)] border portal-border shrink-0" />
+                                <div class="leading-relaxed">
+                                    <strong class="text-slate-800 dark:text-slate-200">4. Informasi &amp; Pengumuman (Opsional):</strong>
+                                    <span>Saya menyetujui penerimaan pesan pengumuman jadwal kegiatan baru dan materi tambahan melalui WhatsApp atau email resmi panitia.</span>
+                                </div>
+                            </label>
+
+                            <!-- 5. Foto & Dokumentasi (Opsional) -->
+                            <label class="flex items-start gap-3 cursor-pointer select-none text-xs portal-text">
+                                <input type="checkbox" id="consent_foto_dokumentasi" name="consent_foto_dokumentasi" value="1"
+                                       {{ old('consent_foto_dokumentasi') ? 'checked' : '' }}
+                                       class="w-4 h-4 mt-0.5 rounded text-[var(--primary)] focus:ring-[var(--primary)] border portal-border shrink-0" />
+                                <div class="leading-relaxed">
+                                    <strong class="text-slate-800 dark:text-slate-200">5. Publikasi Dokumentasi (Opsional):</strong>
+                                    <span>Saya menyetujui foto atau dokumentasi kehadiran pelatihan saya dapat ditampilkan pada galeri publik situs dan media informasi resmi DPD JULEHA Brebes.</span>
+                                </div>
+                            </label>
                         </div>
                     </div>
 

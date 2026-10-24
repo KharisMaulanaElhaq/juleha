@@ -141,6 +141,17 @@ class ManageSettings extends Page implements HasForms
             'cert_form_note' => $allSettings['cert_form_note'] ?? 'digital',
             'cert_reminder_enabled' => ($allSettings['cert_reminder_enabled'] ?? '1') === '1',
             'cert_record_retention_years' => (string) ($allSettings['cert_record_retention_years'] ?? ''),
+
+            'legal_entity_name' => $allSettings['legal_entity_name'] ?? 'Dewan Pengurus Daerah Juru Sembelih Halal Kabupaten Brebes',
+            'legal_sk_date' => $allSettings['legal_sk_date'] ?? '2019-01-15',
+            'legal_npwp' => $allSettings['legal_npwp'] ?? '',
+            'legal_show_npwp' => ($allSettings['legal_show_npwp'] ?? '0') === '1',
+            'legal_show_in_about' => ($allSettings['legal_show_in_about'] ?? '1') === '1',
+            'legal_documents_list' => ! empty($allSettings['legal_documents_list']) && is_array(json_decode($allSettings['legal_documents_list'], true)) ? json_decode($allSettings['legal_documents_list'], true) : [],
+
+            'privacy_request_sla_days' => (string) ($allSettings['privacy_request_sla_days'] ?? '3'),
+            'privacy_officer_name' => $allSettings['privacy_officer_name'] ?? '',
+            'privacy_contact_email' => $allSettings['privacy_contact_email'] ?? '',
         ]);
     }
 
@@ -420,6 +431,115 @@ class ManageSettings extends Page implements HasForms
                                             ->columnSpanFull(),
                                     ]),
                             ]),
+
+                        // Tab 7: Legalitas Organisasi
+                        Tab::make('Legalitas')
+                            ->icon('heroicon-o-scale')
+                            ->schema([
+                                Section::make('Legalitas & Badan Hukum Organisasi')
+                                    ->description('Data resmi badan hukum DPD JULEHA Brebes yang ditampilkan secara transparan pada profil organisasi.')
+                                    ->icon('heroicon-o-building-library')
+                                    ->columns(2)
+                                    ->schema([
+                                        TextInput::make('legal_entity_name')
+                                            ->label('Nama Badan Hukum Resmi')
+                                            ->placeholder('Contoh: Dewan Pengurus Daerah Juru Sembelih Halal Kabupaten Brebes')
+                                            ->helperText('Nama resmi organisasi yang terdaftar pada Kemenkumham atau SK Pengukuhan.')
+                                            ->columnSpan(2),
+
+                                        TextInput::make('sk_legalitas')
+                                            ->label('Nomor SK Kemenkumham / Pengukuhan')
+                                            ->placeholder('AHU-0000118.AH.01.07.TAHUN 2019')
+                                            ->helperText('Nomor SK resmi organisasi (terhubung langsung dengan data SK di pengaturan umum). PENTING: Pastikan nomor SK tidak memuat data pribadi perorangan seperti NIK atau alamat pribadi pengurus.')
+                                            ->columnSpan(1),
+
+                                        TextInput::make('legal_sk_date')
+                                            ->label('Tanggal Penetapan SK')
+                                            ->placeholder('Contoh: 15 Januari 2019')
+                                            ->helperText('Tanggal penetapan SK resmi organisasi.')
+                                            ->columnSpan(1),
+
+                                        TextInput::make('legal_npwp')
+                                            ->label('NPWP Organisasi (Opsional)')
+                                            ->placeholder('Contoh: 00.000.000.0-000.000')
+                                            ->helperText('Nomor Pokok Wajib Pajak atas nama badan hukum organisasi.')
+                                            ->columnSpan(1),
+
+                                        Toggle::make('legal_show_npwp')
+                                            ->label('Tampilkan NPWP di Halaman Publik')
+                                            ->helperText('Secara bawaan tidak ditampilkan demi pertimbangan keamanan.')
+                                            ->default(false)
+                                            ->columnSpan(1),
+
+                                        Toggle::make('legal_show_in_about')
+                                            ->label('Tampilkan Bagian Legalitas di Halaman Tentang Kami (/tentang)')
+                                            ->helperText('Hanya akan tampil di /tentang jika opsi ini aktif dan data legalitas terisi.')
+                                            ->default(true)
+                                            ->columnSpanFull(),
+                                    ]),
+
+                                Section::make('Berkas Dokumen Legalitas (PDF)')
+                                    ->description('Kelola salinan dokumen legalitas organisasi. PENTING: Sebelum mengunggah atau menampilkan dokumen ke publik, pastikan dokumen telah disanitasi dan TIDAK memuat data pribadi perorangan (seperti NIK, foto KTP, atau alamat rumah pribadi).')
+                                    ->icon('heroicon-o-document-arrow-up')
+                                    ->schema([
+                                        Repeater::make('legal_documents_list')
+                                            ->label('Daftar Berkas Legalitas')
+                                            ->addActionLabel('+ Tambah Berkas Legalitas')
+                                            ->schema([
+                                                TextInput::make('title')
+                                                    ->label('Nama / Judul Dokumen')
+                                                    ->placeholder('Contoh: SK Kemenkumham Pendirian JULEHA')
+                                                    ->required()
+                                                    ->columnSpan(2),
+
+                                                TextInput::make('file_url')
+                                                    ->label('Tautan / Lokasi Berkas PDF')
+                                                    ->placeholder('Contoh: /assets/docs/sk-kemenkumham.pdf')
+                                                    ->helperText('Salinan berkas PDF dokumen legalitas.')
+                                                    ->columnSpan(2),
+
+                                                Toggle::make('is_public')
+                                                    ->label('Tampilkan Tautan Unduh di Halaman Publik')
+                                                    ->helperText('Bawaan tidak tampil (privat). Hanya aktifkan jika dokumen aman untuk konsumsi publik tanpa data pribadi.')
+                                                    ->default(false)
+                                                    ->columnSpanFull(),
+                                            ])
+                                            ->columns(4)
+                                            ->columnSpanFull(),
+                                    ]),
+                            ]),
+
+                        // Tab 8: Privasi & Hak Data
+                        Tab::make('Privasi & Hak Data')
+                            ->icon('heroicon-o-shield-check')
+                            ->schema([
+                                Section::make('Pengaturan Layanan Hak Subjek Data (UU PDP)')
+                                    ->description('Konfigurasi batas waktu penanganan (SLA) dan kontak petugas pelindungan data pribadi.')
+                                    ->icon('heroicon-o-clock')
+                                    ->columns(2)
+                                    ->schema([
+                                        TextInput::make('privacy_request_sla_days')
+                                            ->label('Batas Waktu Penanganan Permintaan Data (Hari Kalender)')
+                                            ->numeric()
+                                            ->required()
+                                            ->default(3)
+                                            ->helperText('Bawaan 3 hari kalender sampai pengurus atau penasihat hukum menetapkan nilai resmi organisasi.')
+                                            ->columnSpan(1),
+
+                                        TextInput::make('privacy_officer_name')
+                                            ->label('Nama Petugas Kepatuhan Privasi (Opsional)')
+                                            ->placeholder('Contoh: Tim Sekretariat & Kepatuhan Data')
+                                            ->helperText('Kosongkan untuk menampilkan nama sekretariat secara umum.')
+                                            ->columnSpan(1),
+
+                                        TextInput::make('privacy_contact_email')
+                                            ->label('Email Khusus Pengaduan Privasi (Opsional)')
+                                            ->email()
+                                            ->placeholder('Contoh: privasi@julehabrebes.org')
+                                            ->helperText('Kosongkan untuk menggunakan email resmi sekretariat (admin_email).')
+                                            ->columnSpan(2),
+                                    ]),
+                            ]),
                     ]),
             ]);
     }
@@ -537,6 +657,19 @@ class ManageSettings extends Page implements HasForms
         Setting::set('cert_form_note', trim($state['cert_form_note'] ?? 'digital'), 'certification');
         Setting::set('cert_reminder_enabled', ! empty($state['cert_reminder_enabled']) ? '1' : '0', 'certification');
         Setting::set('cert_record_retention_years', trim($state['cert_record_retention_years'] ?? ''), 'certification');
+
+        // 9. Simpan Pengaturan Legalitas Organisasi
+        Setting::set('legal_entity_name', trim($state['legal_entity_name'] ?? ''), 'legal');
+        Setting::set('legal_sk_date', trim($state['legal_sk_date'] ?? ''), 'legal');
+        Setting::set('legal_npwp', trim($state['legal_npwp'] ?? ''), 'legal');
+        Setting::set('legal_show_npwp', ! empty($state['legal_show_npwp']) ? '1' : '0', 'legal');
+        Setting::set('legal_show_in_about', ! empty($state['legal_show_in_about']) ? '1' : '0', 'legal');
+        Setting::set('legal_documents_list', json_encode($state['legal_documents_list'] ?? [], JSON_UNESCAPED_UNICODE), 'legal');
+
+        // 10. Simpan Pengaturan Privasi & Hak Data
+        Setting::set('privacy_request_sla_days', (string) ($state['privacy_request_sla_days'] ?? '3'), 'privacy');
+        Setting::set('privacy_officer_name', trim($state['privacy_officer_name'] ?? ''), 'privacy');
+        Setting::set('privacy_contact_email', trim($state['privacy_contact_email'] ?? ''), 'privacy');
 
         $this->rememberData();
         Setting::clearCache();

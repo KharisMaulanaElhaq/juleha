@@ -77,7 +77,7 @@ class RegistrationController extends Controller
         $waUrl = null;
         if ($registration) {
             $eventTitle = $registration->event?->title ?? 'Bimtek JULEHA Brebes';
-            $msg = "Halo Admin DPD JULEHA Brebes, saya telah mendaftar Bimtek dengan kode registrasi *{$registration->code}* atas nama *{$registration->full_name}* untuk kegiatan *{$eventTitle}*. Mohon konfirmasi dan informasi berikutnya. Terima kasih.";
+            $msg = "Halo Admin DPD JULEHA Brebes, saya telah mendaftar Bimtek dengan kode registrasi *{$registration->code}* untuk kegiatan *{$eventTitle}*. Mohon konfirmasi dan informasi berikutnya. Terima kasih.";
             $waUrl = setting_wa_link($msg);
         }
 

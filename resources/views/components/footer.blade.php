@@ -188,10 +188,13 @@
             </div>
 
             <!-- Legal Links -->
-            <div class="flex flex-wrap justify-center gap-x-6 gap-y-2 text-xs">
+            <div class="flex flex-wrap justify-center gap-x-5 gap-y-2 text-xs">
                 <a href="{{ route('kebijakan-privasi') }}" class="text-slate-400 hover:text-brand-highlight transition-colors">Kebijakan Privasi</a>
-                <a href="{{ route('faq') }}" class="text-slate-400 hover:text-brand-highlight transition-colors">Tanya Jawab (FAQ)</a>
-                <a href="{{ route('kontak') }}" class="text-slate-400 hover:text-brand-highlight transition-colors">Kontak Sekretariat</a>
+                <a href="{{ route('syarat-ketentuan') }}" class="text-slate-400 hover:text-brand-highlight transition-colors">Syarat &amp; Ketentuan</a>
+                <a href="{{ route('penyimpanan-perangkat') }}" class="text-slate-400 hover:text-brand-highlight transition-colors">Penyimpanan Perangkat</a>
+                <a href="{{ route('disclaimer') }}" class="text-slate-400 hover:text-brand-highlight transition-colors">Disclaimer</a>
+                <a href="{{ route('hak-cipta') }}" class="text-slate-400 hover:text-brand-highlight transition-colors">Hak Cipta &amp; Atribusi</a>
+                <a href="{{ route('data-rights.create') }}" class="text-slate-400 hover:text-brand-highlight transition-colors">Permintaan Hak Data</a>
             </div>
         </div>
     </div>

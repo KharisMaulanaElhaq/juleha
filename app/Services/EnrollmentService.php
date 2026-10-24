@@ -7,6 +7,7 @@ use App\Enums\EventRegistrationState;
 use App\Enums\EventType;
 use App\Mail\NewEnrollmentAdminNotification;
 use App\Models\AuditLog;
+use App\Models\Consent;
 use App\Models\Enrollment;
 use App\Models\Event;
 use App\Models\Setting;
@@ -30,15 +31,32 @@ class EnrollmentService
             throw new DomainException('Pengurus tidak dapat mendaftar sebagai peserta kegiatan.');
         }
 
-        // 2. Validasi profil dan NIK
+        // 2. Cek status pendaftaran kegiatan (finished, closed, deadline_passed, full, open)
+        $preState = $event->registrationState();
+        if ($preState !== EventRegistrationState::Open) {
+            throw new DomainException($preState->rejectionMessage());
+        }
+
+        // 3. Validasi profil dan NIK
         $profile = $user->profile;
         if (! $profile || empty($profile->nik)) {
             throw new DomainException('Nomor Induk Kependudukan (NIK) dan data profil wajib dilengkapi terlebih dahulu.');
         }
 
+        // 3a. Validasi persetujuan dasar pemrosesan data akun dan kegiatan
+        if (! Consent::hasGranted($user->id, Consent::PURPOSE_ACCOUNT_AND_ACTIVITY)) {
+            throw new DomainException('Persetujuan pemrosesan data akun dan kegiatan belum aktif atau telah Anda tarik. Silakan aktifkan kembali di menu Privasi dan Data Saya untuk mendaftar kegiatan.');
+        }
+
         // 2b. Validasi persetujuan pembaruan data untuk kegiatan sertifikasi kompetensi
-        if ($event->type === EventType::SertifikasiKompetensi && ! $profile->hasCurrentConsent()) {
-            throw new DomainException('Pendaftaran uji sertifikasi kompetensi memerlukan pembaruan persetujuan penerusan data ke lembaga sertifikasi. Silakan perbarui persetujuan data pada profil Anda.');
+        if ($event->type === EventType::SertifikasiKompetensi) {
+            if (! $profile->hasCurrentConsent()) {
+                throw new DomainException('Pendaftaran uji sertifikasi kompetensi memerlukan pembaruan persetujuan penerusan data ke lembaga sertifikasi. Silakan perbarui persetujuan data pada profil Anda.');
+            }
+
+            if (! Consent::hasGranted($user->id, Consent::PURPOSE_NIK_CERTIFICATE) || ! Consent::hasGranted($user->id, Consent::PURPOSE_SHARE_TO_LSP)) {
+                throw new DomainException('Pendaftaran uji sertifikasi kompetensi memerlukan persetujuan penerusan data NIK dan data sertifikasi ke Lembaga Sertifikasi Profesi (LSP/BNSP). Silakan aktifkan persetujuan tersebut di menu Privasi dan Data Saya.');
+            }
         }
 
         return DB::transaction(function () use ($user, $event) {

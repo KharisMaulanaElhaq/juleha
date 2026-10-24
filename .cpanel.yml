@@ -1,0 +1,7 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/astj8614/public_html
+    - /bin/cp -R * $DEPLOYPATH
+    - /bin/cp .env.example $DEPLOYPATH/.env.example 2>/dev/null || true
+

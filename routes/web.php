@@ -5,11 +5,14 @@ use App\Http\Controllers\Admin\AttendanceScreenController;
 use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\Auth\ParticipantAuthController;
 use App\Http\Controllers\CertificateVerificationController;
+use App\Http\Controllers\DataRequestController;
+use App\Http\Controllers\LegalDocumentPublicController;
 use App\Http\Controllers\Participant\AttendanceScanController;
 use App\Http\Controllers\Participant\CertificateController;
 use App\Http\Controllers\Participant\DashboardController;
 use App\Http\Controllers\Participant\EnrollmentController;
 use App\Http\Controllers\Participant\EventMaterialController;
+use App\Http\Controllers\Participant\PrivacyDataController;
 use App\Http\Controllers\Participant\ProfileController;
 use App\Http\Controllers\RegistrationController;
 use App\Models\BoardMember;
@@ -55,9 +58,11 @@ Route::get('/', function () {
 // Tentang Kami
 Route::get('/tentang', function () {
     $settings = Setting::all()->pluck('value', 'key');
+    $pelindungPembina = BoardMember::active()->pelindungPembina()->get();
 
     return view('pages.tentang', [
         'settings' => $settings,
+        'pelindungPembina' => $pelindungPembina,
     ]);
 })->name('tentang');
 
@@ -212,6 +217,13 @@ Route::middleware(['auth', 'participant'])->group(function () {
         ->name('participant.certificates');
     Route::get('/dashboard/sertifikat/{certificate}/unduh', [CertificateController::class, 'download'])
         ->name('participant.certificates.download');
+
+    // Privasi dan Hak Data Peserta
+    Route::get('/dashboard/privasi-data', [PrivacyDataController::class, 'index'])->name('participant.privacy.index');
+    Route::post('/dashboard/privasi-data/persetujuan/berikan', [PrivacyDataController::class, 'grant'])->name('participant.privacy.grant');
+    Route::post('/dashboard/privasi-data/persetujuan/tarik', [PrivacyDataController::class, 'withdraw'])->name('participant.privacy.withdraw');
+    Route::get('/dashboard/privasi-data/unduh-json', [PrivacyDataController::class, 'downloadJson'])->name('participant.privacy.download');
+    Route::get('/dashboard/hak-data', [DataRequestController::class, 'portalCreate'])->name('data-rights.portal');
 });
 
 // ==========================================
@@ -316,10 +328,18 @@ Route::get('/kontak', function () {
     ]);
 })->name('kontak');
 
-// Kebijakan Privasi
-Route::get('/kebijakan-privasi', function () {
-    return view('pages.kebijakan-privasi');
-})->name('kebijakan-privasi');
+// Dokumen Hukum Publik & Riwayat Versi
+Route::get('/kebijakan-privasi', [LegalDocumentPublicController::class, 'kebijakanPrivasi'])->name('kebijakan-privasi');
+Route::get('/syarat-ketentuan', [LegalDocumentPublicController::class, 'syaratKetentuan'])->name('syarat-ketentuan');
+Route::get('/penyimpanan-perangkat', [LegalDocumentPublicController::class, 'penyimpananPerangkat'])->name('penyimpanan-perangkat');
+Route::get('/disclaimer', [LegalDocumentPublicController::class, 'disclaimer'])->name('disclaimer');
+Route::get('/hak-cipta', [LegalDocumentPublicController::class, 'hakCipta'])->name('hak-cipta');
+Route::get('/hukum/{slug}', [LegalDocumentPublicController::class, 'show'])->name('legal.show');
+Route::get('/hukum/{slug}/riwayat', [LegalDocumentPublicController::class, 'history'])->name('legal.history');
+
+// Saluran Hak Data Pribadi Publik
+Route::get('/hak-data', [DataRequestController::class, 'create'])->name('data-rights.create');
+Route::post('/hak-data', [DataRequestController::class, 'store'])->middleware('throttle:5,60')->name('data-rights.store');
 
 // Backward Compatibility / Redirects
 $redirects = [
@@ -329,8 +349,9 @@ $redirects = [
     'faq.html' => '/faq',
     'privacy.html' => '/kebijakan-privasi',
     'privacy-policy' => '/kebijakan-privasi',
-    'terms.html' => '/tentang',
-    'terms-and-conditions' => '/tentang',
+    'terms.html' => '/syarat-ketentuan',
+    'terms-and-conditions' => '/syarat-ketentuan',
+    'portal/privasi-data' => '/dashboard/privasi-data',
 ];
 
 foreach ($redirects as $from => $to) {

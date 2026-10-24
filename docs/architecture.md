@@ -1,6 +1,6 @@
 # Arsitektur Sistem: Website dan Portal Peserta DPD JULEHA Kabupaten Brebes
 
-Versi 0.2 (13 Oktober 2026). Dokumen pendamping `prd.md`.
+Versi 0.3 (24 Oktober 2026). Dokumen pendamping `prd.md`, `ropa.md`, `retensi-data.md`.
 
 ## Riwayat perubahan
 
@@ -8,6 +8,7 @@ Versi 0.2 (13 Oktober 2026). Dokumen pendamping `prd.md`.
 |---|---|
 | 0.1 | Rencana awal: company profile dan pendaftaran bimtek |
 | 0.2 | Disesuaikan dengan kondisi aktual (Laravel, Filament, Vite). Menambah login Google, peran dan Policy, profil dengan NIK terenkripsi, enrollment, materi privat, presensi QR, audit, dan catatan deployment |
+| 0.3 | Modul Privasi dan Dokumen Hukum (UU PDP): Model & migrasi `legal_documents`, `legal_document_versions`, `consents`, `data_requests`, `SecurityHeaders` middleware, UserAnonymizationService, tab Filament Legalitas & Privasi |
 
 ## 1. Kondisi aktual proyek
 
@@ -309,7 +310,59 @@ erDiagram
     bigint created_by FK
     bigint updated_by FK
   }
+  LEGAL_DOCUMENTS {
+    bigint id PK
+    string slug "unique"
+    string title
+    string version
+    date effective_date
+    longtext content
+    string status "draft|published"
+    text change_summary
+    datetime published_at
+  }
+  LEGAL_DOCUMENT_VERSIONS {
+    bigint id PK
+    bigint legal_document_id FK
+    string version
+    date effective_date
+    longtext content
+    text change_summary
+    bigint created_by FK
+  }
+  CONSENTS {
+    bigint id PK
+    bigint user_id FK
+    string purpose "akun_dan_kegiatan|nik_sertifikat|bagikan_ke_lsp|komunikasi_pengumuman|foto_dokumentasi"
+    string document_version
+    datetime granted_at
+    datetime withdrawn_at
+  }
+  DATA_REQUESTS {
+    bigint id PK
+    string ticket_number "unique, REQ-YYYYMMDD-XXXX"
+    bigint user_id FK "nullable"
+    string request_type "akses|salinan|koreksi|penarikan_persetujuan|hapus_akun|pembatasan"
+    string name
+    string email
+    string phone
+    text description
+    string status "diajukan|diproses|selesai|ditolak"
+    datetime resolved_at
+    bigint resolved_by FK
+    text resolution_notes
+    datetime sla_due_at
+  }
 ```
+
+### Modul Kepatuhan Privasi (UU PDP) & Dokumen Hukum (Fase 5.5)
+
+Modul ini menyediakan infrastruktur tata kelola pelindungan data pribadi yang mandiri dan terakreditasi:
+1. **Dokumen Hukum Dinamis**: Dikelola secara mandiri oleh Super Admin di panel Filament dengan pencatatan otomatis riwayat versi pada tabel `legal_document_versions`. Dokumen berstatus `draft` tidak terekspos di publik (menghasilkan HTTP 404).
+2. **Persetujuan Granular Berbasis Tujuan (`consents`)**: Menghilangkan persetujuan blanket/gabungan. Memisahkan 3 tujuan wajib dan 2 tujuan opsional. Penarikan persetujuan wajib memblokir pendaftaran kegiatan baru.
+3. **Saluran Hak Data Subjek (`data_requests`)**: Menyediakan formulir publik terlindung (*rate-limited* & *honeypot*) dan portal peserta mandiri dengan nomor tiket otomatis serta pelacakan batas waktu SLA (ditandai visual merah di Filament jika terlewat).
+4. **Service Anonimisasi Terpusat (`UserAnonymizationService`)**: Menghapus file fisik sertifikat pada private disk, membersihkan NIK, nomor HP, dan alamat, serta menonaktifkan akun melalui soft delete dengan jejak audit anonim.
+5. **Keamanan Transport & Self-Hosted Assets**: Menginjeksi `SecurityHeaders` middleware dan men-self-host pustaka icon Lucide di `/assets/lucide.min.js`.
 
 ### Modul Hasil Kompetensi & Sertifikat (Fase 5)
 - Sistem **TIDAK MEMBUAT atau MENCETAK** sertifikat sendiri. Sertifikat diterbitkan oleh Lembaga Sertifikasi Profesi (default: **LSP Pertanian RI**).

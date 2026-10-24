@@ -190,7 +190,7 @@
         const message = document.getElementById('contact_message').value;
 
         const adminPhone = "{{ normalize_wa_number(setting('whatsapp_number', '6282324448886')) }}";
-        const text = `Halo Pengurus DPD JULEHA Brebes,\n\nNama: ${name}\nNo HP: ${phone}\nKategori: ${category}\nPesan:\n${message}`;
+        const text = `Halo Pengurus DPD JULEHA Brebes,\n\nKategori: ${category}\nPesan:\n${message}`;
 
         window.open(`https://wa.me/${adminPhone}?text=${encodeURIComponent(text)}`, '_blank');
     }

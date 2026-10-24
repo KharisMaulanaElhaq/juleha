@@ -190,3 +190,54 @@ Sesuai Pasal 46 UU PDP:
   2. Kapan insiden terjadi.
   3. Upaya penanganan dan mitigasi yang telah dilakukan oleh DPD JULEHA Brebes.
   4. Kontak nara hubung DPD untuk bantuan teknis dan informasi lebih lanjut.
+
+---
+
+## 8. Persetujuan Granular Berbasis Tujuan (Granular Consents)
+
+Sistem mematuhi prinsip persetujuan eksplisit, sukarela, dan spesifik melalui tabel `consents`:
+
+| Tujuan Persetujuan | Sifat | Deskripsi & Konsekuensi Sistem |
+|---|---|---|
+| `akun_dan_kegiatan` | **Wajib** | Pemrosesan akun portal dan partisipasi pelatihan dasar. Jika ditarik, pendaftaran kegiatan diblokir. |
+| `nik_sertifikat` | **Wajib (Sertifikasi)** | Pemrosesan dan penyimpanan NIK untuk penerbitan sertifikat digital resmi. |
+| `bagikan_ke_lsp` | **Wajib (Sertifikasi)** | Penerusan data identitas ke Lembaga Sertifikasi Profesi (LSP/BNSP) pihak ketiga. |
+| `komunikasi_pengumuman` | **Opsional** | Pengiriman informasi agenda, pengingat jadwal, dan rilis edukasi halal via email/WhatsApp. |
+| `foto_dokumentasi` | **Opsional** | Publikasi foto dokumentasi kegiatan pada galeri website atau media sosial DPD. |
+
+- **Antarmuka Pengelolaan**: Peserta dapat meninjau, memberikan, atau menarik persetujuan secara mandiri melalui menu portal **"Privasi dan Data Saya"** (`/dashboard/privasi-data`).
+- **Pendaftaran Tanpa Kotak Tercentang Otomatis**: Formulir pendaftaran/profil tidak menggunakan checkbox yang tercentang otomatis (*no pre-ticked boxes*).
+
+---
+
+## 9. Saluran dan Layanan Pemenuhan Hak Subjek Data
+
+Peserta maupun masyarakat umum memiliki saluran resmi pengajuan hak data melalui formulir publik (`/hak-data`) dan portal peserta (`/dashboard/hak-data`):
+
+1. **Jenis Hak yang Dilayani**:
+   - Hak Akses Informasi Pemrosesan Data.
+   - Hak Salinan / Portabilitas Data (Unduh JSON otomatis di portal peserta).
+   - Hak Pembaruan / Koreksi Data (Melalui edit profil).
+   - Hak Penarikan Persetujuan (Toggle interaktif pada portal).
+   - Hak Penghapusan Akun & Data (Right to Erasure / Anonymization).
+   - Hak Pembatasan Pemrosesan Data.
+2. **Keamanan Formulir Publik**:
+   - Rate limiting ketat (`throttle:5,60`).
+   - Anti-spam Honeypot field (`website_url_hp`) yang wajib kosong.
+   - Penomoran tiket registrasi otomatis berformat `REQ-YYYYMMDD-XXXX`.
+3. **Pelacakan SLA & Notifikasi**:
+   - Penghitungan tenggat hari kerja otomatis berdasarkan konfigurasi `privacy_request_sla_days`.
+   - Notifikasi email otomatis kepada pemohon saat permohonan diajukan dan saat dinyatakan selesai/ditolak.
+   - Panel admin Filament dilengkapi penanda visual warna merah jika permohonan mendekati atau melewati batas waktu SLA.
+
+---
+
+## 10. Prosedur Teknis Anonimisasi Terpusat (`UserAnonymizationService`)
+
+Apabila permohonan hak penghapusan akun disetujui oleh Super Admin:
+1. Berkas fisik PDF sertifikat di private storage dihapus secara permanen (`Storage::disk('private')->delete(...)`).
+2. Seluruh kolom profil ber-NIK, NIK Hash, nomor HP, dan alamat pada `participant_profiles` dikosongkan (`NULL`).
+3. Akun pengguna diubah menjadi nama generik `'Peserta Dianonimkan'`, email diubah menjadi `'dihapus_{id}_{time}@anonymized.invalid'`, Google ID & avatar dikosongkan.
+4. Akun ditandai soft delete (`deleted_at = now()`).
+5. Catatan audit log dibuat tanpa memuat NIK, nama lama, atau email lama peserta untuk menjaga kebersihan jejak privasi.
+
