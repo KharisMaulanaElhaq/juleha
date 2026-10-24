@@ -41,7 +41,7 @@
 </div>
 
 <!-- ===================== NAVBAR ===================== -->
-<nav id="navbar" class="sticky top-0 z-50 bg-transparent transition-all duration-300">
+<nav id="navbar" class="sticky top-0 z-50 bg-white dark:bg-[#0f0918] border-b border-slate-200/80 dark:border-slate-800/80 shadow-sm transition-all duration-300">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-14 sm:h-16 lg:h-20">
             <!-- Logo + Brand Name (One line, 56-64px height on mobile) -->

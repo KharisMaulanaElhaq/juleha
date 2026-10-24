@@ -18,7 +18,9 @@ function toggleTheme() {
     const navbar = document.getElementById('navbar');
     if (navbar && navbar.classList.contains('scrolled')) {
         navbar.querySelectorAll('.nav-link').forEach(l => {
-            l.style.color = isDark ? '#CBD5E1' : '#0F172A';
+            if (!l.classList.contains('font-semibold') && !l.classList.contains('text-brand')) {
+                l.style.color = isDark ? '#CBD5E1' : '#334155';
+            }
         });
     }
 
@@ -61,19 +63,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const navbar = document.getElementById('navbar');
     if (navbar) {
         const handleScroll = () => {
-            if (window.scrollY > 60) {
+            if (window.scrollY > 20) {
                 navbar.classList.add('scrolled');
                 navbar.querySelectorAll('.nav-link').forEach(l => {
-                    l.style.color = document.documentElement.classList.contains('dark') ? '#CBD5E1' : '#0F172A';
+                    if (!l.classList.contains('font-semibold') && !l.classList.contains('text-brand')) {
+                        l.style.color = document.documentElement.classList.contains('dark') ? '#CBD5E1' : '#334155';
+                    }
                 });
             } else {
                 navbar.classList.remove('scrolled');
                 navbar.querySelectorAll('.nav-link').forEach(l => {
-                    l.style.color = '';
+                    if (!l.classList.contains('font-semibold') && !l.classList.contains('text-brand')) {
+                        l.style.color = '';
+                    }
                 });
             }
         };
-        window.addEventListener('scroll', handleScroll);
+        window.addEventListener('scroll', handleScroll, { passive: true });
         handleScroll();
     }
 
