@@ -6,6 +6,7 @@ use App\Enums\EnrollmentStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Attendance;
 use App\Models\Event;
+use App\Support\CsvSanitizer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -72,20 +73,19 @@ class AttendanceReportController extends Controller
             // Tulis UTF-8 BOM agar Microsoft Excel Windows mengenali huruf dan format teks
             fwrite($handle, "\xEF\xBB\xBF");
 
-            // Header Judul Laporan
-            fputcsv($handle, ['REKAPITULASI KEHADIRAN PESERTA PELATIHAN & BIMTEK']);
-            fputcsv($handle, ['DPD JURU SEMBELIH HALAL (JULEHA) KABUPATEN BREBES']);
-            fputcsv($handle, ['Nama Kegiatan', $event->title]);
-            fputcsv($handle, ['Waktu Pelaksanaan', $event->starts_at?->format('d/m/Y H:i').' WIB']);
-            fputcsv($handle, ['Lokasi', $event->location]);
-            fputcsv($handle, ['Tanggal Ekspor', now()->timezone('Asia/Jakarta')->format('d/m/Y H:i:s').' WIB']);
+            // Header Judul Laporan (disanitasi mencegah formula injection)
+            fputcsv($handle, CsvSanitizer::sanitizeRow(['REKAPITULASI KEHADIRAN PESERTA PELATIHAN & BIMTEK']));
+            fputcsv($handle, CsvSanitizer::sanitizeRow(['DPD JURU SEMBELIH HALAL (JULEHA) KABUPATEN BREBES']));
+            fputcsv($handle, CsvSanitizer::sanitizeRow(['Nama Kegiatan', $event->title]));
+            fputcsv($handle, CsvSanitizer::sanitizeRow(['Waktu Pelaksanaan', $event->starts_at?->format('d/m/Y H:i').' WIB']));
+            fputcsv($handle, CsvSanitizer::sanitizeRow(['Lokasi', $event->location]));
+            fputcsv($handle, CsvSanitizer::sanitizeRow(['Tanggal Ekspor', now()->timezone('Asia/Jakarta')->format('d/m/Y H:i:s').' WIB']));
             fputcsv($handle, []); // Baris Kosong
 
-            // Baris Judul Kolom Matriks
+            // Baris Judul Kolom Matriks (TIDAK memuat NIK demi privasi)
             $columnHeaders = [
                 'No',
                 'Nama Peserta',
-                'NIK',
                 'Nomor WhatsApp',
                 'Kecamatan',
                 'Desa / Kelurahan',
@@ -99,7 +99,7 @@ class AttendanceReportController extends Controller
             $columnHeaders[] = 'Total Sesi';
             $columnHeaders[] = 'Persentase (%)';
 
-            fputcsv($handle, $columnHeaders);
+            fputcsv($handle, CsvSanitizer::sanitizeRow($columnHeaders));
 
             // Baris Data Tiap Peserta
             $totalSessionCount = $sessions->count();
@@ -112,7 +112,6 @@ class AttendanceReportController extends Controller
                 $row = [
                     $index + 1,
                     $profile?->full_name_ktp ?: ($user?->name ?: '-'),
-                    $profile?->nik ? "'".$profile->nik : '-', // Kutip agar Excel membaca string
                     $profile?->phone ? "'".$profile->phone : '-',
                     $profile?->district ?: 'Brebes',
                     $profile?->village ?: '-',
@@ -142,19 +141,19 @@ class AttendanceReportController extends Controller
                 $row[] = $totalSessionCount;
                 $row[] = $pct.'%';
 
-                fputcsv($handle, $row);
+                fputcsv($handle, CsvSanitizer::sanitizeRow($row));
             }
 
             // Baris Ringkasan Total Hadir per Sesi
             fputcsv($handle, []);
-            $summaryRow = ['', 'TOTAL PESERTA HADIR', '', '', '', ''];
+            $summaryRow = ['', 'TOTAL PESERTA HADIR', '', '', ''];
             foreach ($sessionHadirTotals as $totalHadir) {
                 $summaryRow[] = $totalHadir.' orang';
             }
             $summaryRow[] = '';
             $summaryRow[] = '';
             $summaryRow[] = '';
-            fputcsv($handle, $summaryRow);
+            fputcsv($handle, CsvSanitizer::sanitizeRow($summaryRow));
 
             fclose($handle);
         };

@@ -6,6 +6,7 @@ use App\Enums\EnrollmentStatus;
 use App\Enums\EventType;
 use App\Models\Enrollment;
 use App\Models\Event;
+use App\Models\EventSession;
 use App\Models\ParticipantProfile;
 use App\Models\User;
 use App\Support\CsvSanitizer;
@@ -130,5 +131,91 @@ class CsvFormulaInjectionTest extends TestCase
         $this->assertStringContainsString("'+Wanasari", $csvContent);
         $this->assertStringContainsString("'@evil@domain.com", $csvContent);
         $this->assertStringContainsString("'\tPesantunan", $csvContent);
+    }
+
+    public function test_attendance_rekap_export_neutralizes_dangerous_formulas_and_excludes_nik(): void
+    {
+        $admin = User::factory()->create(['role' => User::ROLE_ADMIN_KEGIATAN]);
+
+        $event = Event::create([
+            'title' => 'Bimtek Juru Sembelih Halal Formula Injection Test',
+            'slug' => 'bimtek-juleha-inj-test',
+            'type' => EventType::Bimtek,
+            'starts_at' => now()->addDays(1),
+            'ends_at' => now()->addDays(2),
+            'registration_deadline' => now()->addHours(12),
+            'location' => 'Islamic Center Brebes',
+            'quota' => 30,
+            'fee' => 0,
+            'status' => 'open',
+        ]);
+
+        EventSession::create([
+            'event_id' => $event->id,
+            'title' => 'Materi Syariat Penyembelihan',
+            'starts_at' => now()->addDays(1)->setHour(8),
+            'ends_at' => now()->addDays(1)->setHour(12),
+            'attendance_open' => true,
+        ]);
+
+        $user1 = User::factory()->create([
+            'role' => User::ROLE_PARTICIPANT,
+            'name' => '=HYPERLINK("http://evil.com","Click")',
+        ]);
+        ParticipantProfile::create([
+            'user_id' => $user1->id,
+            'full_name_ktp' => '=HYPERLINK("http://evil.com","Click")',
+            'phone' => '081234567890',
+            'nik' => '3329011111110001',
+            'nik_hash' => hash_hmac('sha256', '3329011111110001', env('NIK_HASH_KEY', 'test_key')),
+            'district' => 'Brebes',
+            'village' => 'Brebes',
+            'consent' => true,
+            'consent_version' => ParticipantProfile::CURRENT_CONSENT_VERSION,
+        ]);
+        Enrollment::create([
+            'user_id' => $user1->id,
+            'event_id' => $event->id,
+            'status' => EnrollmentStatus::Aktif,
+        ]);
+
+        $user2 = User::factory()->create([
+            'role' => User::ROLE_PARTICIPANT,
+            'name' => '@SUM(1,2)',
+        ]);
+        ParticipantProfile::create([
+            'user_id' => $user2->id,
+            'full_name_ktp' => '@SUM(1,2)',
+            'phone' => '081234567891',
+            'nik' => '3329012222220002',
+            'nik_hash' => hash_hmac('sha256', '3329012222220002', env('NIK_HASH_KEY', 'test_key')),
+            'district' => 'Jatibarang',
+            'village' => 'Jatibarang Kidul',
+            'consent' => true,
+            'consent_version' => ParticipantProfile::CURRENT_CONSENT_VERSION,
+        ]);
+        Enrollment::create([
+            'user_id' => $user2->id,
+            'event_id' => $event->id,
+            'status' => EnrollmentStatus::Aktif,
+        ]);
+
+        $response = $this->actingAs($admin)
+            ->get(route('admin.attendance.export', $event));
+
+        $response->assertOk();
+        $this->assertStringContainsString('text/csv', (string) $response->headers->get('content-type'));
+
+        $csvOutput = $response->streamedContent();
+
+        // Formula injection dinetralkan dengan petik tunggal di awal
+        $this->assertStringContainsString('\'=HYPERLINK', $csvOutput);
+        $this->assertStringContainsString('evil.com', $csvOutput);
+        $this->assertStringContainsString('\'@SUM(1,2)', $csvOutput);
+
+        // Ekspor presensi TIDAK boleh memuat NIK baik di header maupun baris data
+        $this->assertStringNotContainsString(',NIK,', $csvOutput);
+        $this->assertStringNotContainsString('3329011111110001', $csvOutput);
+        $this->assertStringNotContainsString('3329012222220002', $csvOutput);
     }
 }

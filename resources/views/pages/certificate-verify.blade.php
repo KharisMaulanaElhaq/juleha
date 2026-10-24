@@ -204,10 +204,10 @@
                     @if($isHolderErased)
                         <div class="p-4 rounded-2xl bg-slate-100 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 text-xs text-slate-700 dark:text-slate-300 space-y-1">
                             <p class="font-bold flex items-center gap-1.5 text-slate-900 dark:text-white">
-                                <i data-lucide="shield-check" class="w-4 h-4 text-emerald-600 dark:text-emerald-400"></i>
-                                <span>Keterangan Pelindungan Data Pribadi (UU PDP)</span>
+                                <i data-lucide="info" class="w-4 h-4 text-emerald-600 dark:text-emerald-400"></i>
+                                <span>Keterangan Data Pemegang</span>
                             </p>
-                            <p>Data pemegang telah dihapus dari basis data aktif sesuai permohonan penghapusan data. Catatan nomor sertifikat dan masa berlakunya tetap dipertahankan untuk integritas verifikasi resmi.</p>
+                            <p>Data pemegang sertifikat ini telah dihapus atas permintaan pemegang. Keabsahan sertifikat mengacu pada catatan {{ $certificate->issuer_name ?? $issuerName }}.</p>
                         </div>
                     @endif
 

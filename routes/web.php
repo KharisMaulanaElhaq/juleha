@@ -218,10 +218,10 @@ Route::middleware(['auth', 'participant'])->group(function () {
 // VERIFIKASI PUBLIK CATATAN SERTIFIKAT DPD
 // ==========================================
 Route::get('/verifikasi', [CertificateVerificationController::class, 'index'])
-    ->middleware('throttle:15,1')
+    ->middleware('throttle:60,1')
     ->name('certificate.verify');
 Route::get('/verifikasi/{public_code}', [CertificateVerificationController::class, 'show'])
-    ->middleware('throttle:15,1')
+    ->middleware('throttle:60,1')
     ->name('certificate.verify.code');
 
 // ==========================================

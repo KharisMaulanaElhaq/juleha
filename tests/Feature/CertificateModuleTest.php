@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Enums\EnrollmentStatus;
 use App\Enums\EventType;
+use App\Http\Controllers\CertificateVerificationController;
 use App\Mail\CertificateExpiryReminderMail;
 use App\Models\Certificate;
 use App\Models\Enrollment;
@@ -15,6 +16,7 @@ use App\Policies\UserPolicy;
 use App\Services\CertificateService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
@@ -848,7 +850,7 @@ class CertificateModuleTest extends TestCase
         $resActive->assertOk()
             ->assertSee('Status Masa Berlaku: Aktif')
             ->assertSee('Data Pemegang Telah Dihapus')
-            ->assertSee('Data pemegang telah dihapus');
+            ->assertSee('Data pemegang sertifikat ini telah dihapus atas permintaan pemegang');
 
         // 2. Sertifikat sudah kedaluwarsa dengan data pemegang dihapus
         $event2 = $this->createEvent();
@@ -879,7 +881,7 @@ class CertificateModuleTest extends TestCase
         $resExpired->assertOk()
             ->assertSee('Status Masa Berlaku: Kedaluwarsa')
             ->assertSee('Data Pemegang Telah Dihapus')
-            ->assertSee('Data pemegang telah dihapus');
+            ->assertSee('Data pemegang sertifikat ini telah dihapus atas permintaan pemegang');
 
         // 3. Sertifikat dicabut dengan data pemegang dihapus
         $event3 = $this->createEvent();
@@ -911,5 +913,80 @@ class CertificateModuleTest extends TestCase
         $resRevoked->assertOk()
             ->assertSee('Status Masa Berlaku: Dicabut')
             ->assertSee('Data Pemegang Telah Dihapus');
+    }
+
+    public function test_public_verification_throttle_on_consecutive_failures(): void
+    {
+        Cache::flush();
+
+        $participant = User::factory()->create(['role' => User::ROLE_PARTICIPANT]);
+        $event = $this->createEvent();
+        $enrollment = Enrollment::create([
+            'user_id' => $participant->id,
+            'event_id' => $event->id,
+            'status' => EnrollmentStatus::Selesai,
+        ]);
+
+        $validCert = CertificateService::recordResult($enrollment, [
+            'result' => Certificate::RESULT_KOMPETEN,
+            'scheme_name' => 'Juru Sembelih Halal Level 2',
+            'certificate_number' => 'CERT-VALID-THROTTLE-01',
+            'issued_at' => '2026-10-01',
+        ]);
+
+        $attackerIp = '198.51.100.22';
+        $legitIp = '203.0.113.88';
+
+        // 1. Empat kegagalan berturut-turut dari IP penyerang
+        // Pesan tidak membedakan format nomor salah maupun nomor tidak ada
+        $sampleFailures = [
+            'FORMAT_SALAH_XYZ',
+            '12345',
+            'CERT-TIDAK-ADA-001',
+            'CERT-NOT-FOUND-002',
+        ];
+
+        foreach ($sampleFailures as $failNumber) {
+            $response = $this->withServerVariables(['REMOTE_ADDR' => $attackerIp])
+                ->get(route('certificate.verify', ['q' => $failNumber]));
+
+            $response->assertOk()
+                ->assertSee(CertificateVerificationController::NOT_FOUND_MESSAGE)
+                ->assertDontSee('Kharis')
+                ->assertDontSee('Status Masa Berlaku');
+        }
+
+        // 2. Kegagalan ke-5 memicu pemblokiran 15 menit dengan status 429 dan pesan netral
+        $response5 = $this->withServerVariables(['REMOTE_ADDR' => $attackerIp])
+            ->get(route('certificate.verify', ['q' => 'NOMOR-SALAH-KE-5']));
+
+        $response5->assertStatus(429);
+        $this->assertStringContainsString('Terlalu banyak percobaan, coba lagi nanti.', $response5->getContent());
+
+        // 3. Request berikutnya dari IP yang sama tetap terblokir bahkan saat mencari nomor valid
+        $responseBlocked = $this->withServerVariables(['REMOTE_ADDR' => $attackerIp])
+            ->get(route('certificate.verify', ['q' => $validCert->certificate_number]));
+
+        $responseBlocked->assertStatus(429);
+        $this->assertStringContainsString('Terlalu banyak percobaan, coba lagi nanti.', $responseBlocked->getContent());
+
+        // 4. Permintaan dari IP lain TIDAK terpengaruh sama sekali
+        $responseLegit = $this->withServerVariables(['REMOTE_ADDR' => $legitIp])
+            ->get(route('certificate.verify', ['q' => $validCert->certificate_number]));
+
+        $responseLegit->assertOk()
+            ->assertSee($validCert->certificate_number)
+            ->assertSee('Juru Sembelih Halal Level 2');
+
+        // 5. Permintaan valid lewat public_code dari IP lain tidak menambah hitungan gagal
+        $responseCode = $this->withServerVariables(['REMOTE_ADDR' => $legitIp])
+            ->get(route('certificate.verify.code', $validCert->public_code));
+
+        $responseCode->assertOk()
+            ->assertSee($validCert->certificate_number);
+
+        $legitIpHash = sha1($legitIp);
+        $this->assertFalse(Cache::has('cert_verify_fails:'.$legitIpHash));
+        $this->assertFalse(Cache::has('cert_verify_blocked:'.$legitIpHash));
     }
 }

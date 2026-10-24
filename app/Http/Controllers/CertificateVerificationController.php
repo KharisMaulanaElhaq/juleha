@@ -22,19 +22,16 @@ class CertificateVerificationController extends Controller
         $errorMessage = null;
 
         $ip = $request->ip() ?: 'unknown';
-        $failKey = 'cert_verify_fails:'.$ip;
-        $fails = (int) Cache::get($failKey, 0);
+        $ipHash = sha1($ip);
+        $failKey = 'cert_verify_fails:'.$ipHash;
+        $blockKey = 'cert_verify_blocked:'.$ipHash;
+
+        // Jika IP sedang dalam masa blokir sementara (15 menit)
+        if (Cache::has($blockKey)) {
+            abort(429, 'Terlalu banyak percobaan, coba lagi nanti.');
+        }
 
         if (! empty($queryNumber)) {
-            // Terapkan penundaan atau throttle lebih ketat jika terjadi beberapa pencarian gagal beruntun
-            if ($fails >= 8) {
-                abort(429, 'Terlalu banyak percobaan pencarian yang gagal. Silakan coba lagi beberapa menit lagi.');
-            }
-
-            if ($fails >= 3) {
-                usleep(300000); // 300ms penundaan untuk memitigasi enumerasi
-            }
-
             // Cari hanya yang kompeten (belum_kompeten tidak pernah ditampilkan)
             $found = Certificate::where('certificate_number', $queryNumber)
                 ->where('result', Certificate::RESULT_KOMPETEN)
@@ -42,11 +39,18 @@ class CertificateVerificationController extends Controller
                 ->first();
 
             if ($found) {
-                Cache::forget($failKey);
+                // Pencarian valid tidak menambah hitungan gagal
                 $certificate = $found;
             } else {
-                Cache::put($failKey, $fails + 1, now()->addMinutes(5));
-                usleep(150000); // Penundaan kecil tambahan pada pencarian gagal
+                // Hitung kegagalan: setelah 5 kegagalan dalam 10 menit, blokir 15 menit
+                $fails = (int) Cache::get($failKey, 0) + 1;
+                if ($fails >= 5) {
+                    Cache::put($blockKey, true, now()->addMinutes(15));
+                    Cache::forget($failKey);
+                    abort(429, 'Terlalu banyak percobaan, coba lagi nanti.');
+                }
+
+                Cache::put($failKey, $fails, now()->addMinutes(10));
                 $errorMessage = self::NOT_FOUND_MESSAGE;
             }
         }
