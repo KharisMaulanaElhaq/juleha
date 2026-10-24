@@ -10,6 +10,7 @@ use App\Models\Enrollment;
 use App\Models\Event;
 use App\Models\Setting;
 use App\Services\CertificateService;
+use App\Support\CsvSanitizer;
 use Carbon\Carbon;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
@@ -314,7 +315,11 @@ class CertificatesRelationManager extends RelationManager
                     ->visible(fn (): bool => auth()->user()?->isSuperAdmin() === true)
                     ->requiresConfirmation()
                     ->modalHeading('Konfirmasi Ekspor Data Peserta untuk LSP')
-                    ->modalDescription('Anda akan mengunduh data peserta kegiatan sertifikasi ini yang memuat data pribadi sensitif (Nama sesuai KTP, NIK lengkap, Kontak WhatsApp, Email, dan Domisili) untuk diteruskan kepada pihak LSP Pertanian RI. Aksi ini akan dicatat dalam Log Audit resmi. Lanjutkan?')
+                    ->modalDescription(function (): string {
+                        $issuer = Setting::get('cert_issuer_name', 'LSP Pertanian RI');
+
+                        return "Anda akan mengunduh data peserta kegiatan sertifikasi ini yang memuat data pribadi sensitif (termasuk NIK lengkap, Nama sesuai KTP, WhatsApp, Email, dan Domisili) untuk dibagikan kepada {$issuer}. Aksi ini dicatat dalam Log Audit resmi tanpa mencantumkan nilai NIK, dan file tidak disimpan di server setelah diunduh (langsung di-stream). Lanjutkan?";
+                    })
                     ->modalSubmitActionLabel('Ya, Ekspor Data untuk LSP')
                     ->action(function (): StreamedResponse {
                         /** @var Event $event */
@@ -340,7 +345,7 @@ class CertificatesRelationManager extends RelationManager
                             fwrite($handle, "\xEF\xBB\xBF");
 
                             // Header kolom yang dikonfigurasi
-                            fputcsv($handle, [
+                            fputcsv($handle, CsvSanitizer::sanitizeRow([
                                 'No',
                                 'Nama Sesuai KTP',
                                 'NIK',
@@ -348,13 +353,13 @@ class CertificatesRelationManager extends RelationManager
                                 'Email',
                                 'Kecamatan',
                                 'Desa/Kelurahan',
-                            ]);
+                            ]));
 
                             $no = 1;
                             foreach ($enrollments as $enrollment) {
                                 $profile = $enrollment->user?->profile;
 
-                                fputcsv($handle, [
+                                fputcsv($handle, CsvSanitizer::sanitizeRow([
                                     $no++,
                                     $profile?->full_name_ktp ?? $enrollment->user?->name ?? '-',
                                     $profile?->nik ?? '-', // NIK didekripsi via model cast
@@ -362,7 +367,7 @@ class CertificatesRelationManager extends RelationManager
                                     $enrollment->user?->email ?? '-',
                                     $profile?->district ?? '-',
                                     $profile?->village ?? '-',
-                                ]);
+                                ]));
                             }
 
                             fclose($handle);

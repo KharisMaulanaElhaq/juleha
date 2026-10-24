@@ -54,6 +54,15 @@ class User extends Authenticatable implements FilamentUser
         'is_active' => true,
     ];
 
+    protected static function booted(): void
+    {
+        static::deleting(function (User $user) {
+            if ($user->isForceDeleting() && $user->certificates()->exists()) {
+                throw new \LogicException('Akun yang memiliki riwayat sertifikat tidak boleh dihapus permanen. Gunakan fitur anonimisasi akun.');
+            }
+        });
+    }
+
     public function canAccessPanel(Panel $panel): bool
     {
         if ($this->is_active === false || $this->trashed()) {

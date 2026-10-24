@@ -26,6 +26,8 @@ class Certificate extends Model
 
     public const STATUS_DICABUT = 'dicabut';
 
+    public const STATUS_DATA_DIHAPUS = 'data_dihapus';
+
     public const STATUS_BELUM_KOMPETEN = 'belum_kompeten';
 
     protected $fillable = [
@@ -47,6 +49,7 @@ class Certificate extends Model
         'revoked_reason',
         'internal_note',
         'reminders_sent',
+        'holder_data_erased_at',
         'created_by',
         'updated_by',
     ];
@@ -57,6 +60,7 @@ class Certificate extends Model
             'issued_at' => 'date',
             'valid_until' => 'date',
             'revoked_at' => 'datetime',
+            'holder_data_erased_at' => 'datetime',
             'reminders_sent' => 'array',
             'file_size' => 'integer',
         ];
@@ -141,6 +145,11 @@ class Certificate extends Model
         return $this->revoked_at !== null;
     }
 
+    public function isHolderDataErased(): bool
+    {
+        return $this->holder_data_erased_at !== null || ($this->user && $this->user->isAnonymized());
+    }
+
     public function isCompetent(): bool
     {
         return $this->result === self::RESULT_KOMPETEN;
@@ -157,7 +166,7 @@ class Certificate extends Model
 
     public function isExpiringSoon(): bool
     {
-        if (! $this->isCompetent() || ! $this->valid_until || $this->isExpired() || $this->isRevoked()) {
+        if (! $this->isCompetent() || ! $this->valid_until || $this->isExpired() || $this->isRevoked() || $this->isHolderDataErased()) {
             return false;
         }
 
@@ -170,6 +179,7 @@ class Certificate extends Model
     {
         return $this->isCompetent()
             && ! $this->isRevoked()
+            && ! $this->isHolderDataErased()
             && ! $this->isExpired()
             && ! $this->isExpiringSoon();
     }
@@ -187,6 +197,10 @@ class Certificate extends Model
             return self::STATUS_BELUM_KOMPETEN;
         }
 
+        if ($this->isHolderDataErased()) {
+            return self::STATUS_DATA_DIHAPUS;
+        }
+
         if ($this->isExpired()) {
             return self::STATUS_KEDALUWARSA;
         }
@@ -198,6 +212,11 @@ class Certificate extends Model
         return self::STATUS_AKTIF;
     }
 
+    public function getComputedStatusAttribute(): string
+    {
+        return $this->getComputedStatus();
+    }
+
     public function getStatusLabelAttribute(): string
     {
         return match ($this->getComputedStatus()) {
@@ -205,6 +224,7 @@ class Certificate extends Model
             self::STATUS_SEGERA_BERAKHIR => 'Segera Berakhir',
             self::STATUS_KEDALUWARSA => 'Kedaluwarsa',
             self::STATUS_DICABUT => 'Dicabut',
+            self::STATUS_DATA_DIHAPUS => 'Data Pemegang Dihapus',
             self::STATUS_BELUM_KOMPETEN => 'Belum Kompeten',
         };
     }
@@ -216,6 +236,7 @@ class Certificate extends Model
             self::STATUS_SEGERA_BERAKHIR => 'warning',
             self::STATUS_KEDALUWARSA => 'danger',
             self::STATUS_DICABUT => 'danger',
+            self::STATUS_DATA_DIHAPUS => 'gray',
             self::STATUS_BELUM_KOMPETEN => 'gray',
         };
     }
@@ -227,6 +248,7 @@ class Certificate extends Model
             self::STATUS_SEGERA_BERAKHIR => 'heroicon-o-clock',
             self::STATUS_KEDALUWARSA => 'heroicon-o-x-circle',
             self::STATUS_DICABUT => 'heroicon-o-no-symbol',
+            self::STATUS_DATA_DIHAPUS => 'heroicon-o-user-minus',
             self::STATUS_BELUM_KOMPETEN => 'heroicon-o-minus-circle',
         };
     }
@@ -238,6 +260,7 @@ class Certificate extends Model
             self::STATUS_SEGERA_BERAKHIR => 'bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300 border border-amber-300 dark:border-amber-800',
             self::STATUS_KEDALUWARSA => 'bg-rose-100 text-rose-800 dark:bg-rose-950/50 dark:text-rose-300 border border-rose-300 dark:border-rose-800',
             self::STATUS_DICABUT => 'bg-red-100 text-red-800 dark:bg-red-950/50 dark:text-red-300 border border-red-300 dark:border-red-800',
+            self::STATUS_DATA_DIHAPUS => 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300 border border-slate-300 dark:border-slate-700',
             self::STATUS_BELUM_KOMPETEN => 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300 border border-slate-300 dark:border-slate-700',
         };
     }
@@ -245,9 +268,14 @@ class Certificate extends Model
     /**
      * Nama pemilik disamarkan untuk tampilan verifikasi publik (Nama depan + inisial sisanya).
      * Contoh: "Ahmad Dahlan" -> "Ahmad D.", "Kharis Maulana Elhaq" -> "Kharis M. E."
+     * Jika data akun telah dianonimkan (UU PDP), tampilkan "Data pemegang telah dihapus".
      */
     public function getMaskedHolderNameAttribute(): string
     {
+        if ($this->isHolderDataErased()) {
+            return 'Data pemegang telah dihapus';
+        }
+
         $rawName = trim($this->user?->name ?? 'Peserta');
 
         $words = preg_split('/\s+/', $rawName);

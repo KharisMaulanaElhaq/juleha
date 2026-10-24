@@ -57,9 +57,14 @@ class UserPolicy
 
     /**
      * Hanya super_admin yang berhak menghapus permanen pengguna tanpa riwayat.
+     * Akun yang memiliki sertifikat TIDAK BOLEH dihapus permanen (harus dianonimkan).
      */
     public function forceDelete(User $user, User $model): bool
     {
+        if ($model->certificates()->exists() || $model->hasHistory()) {
+            return false;
+        }
+
         return $user->isActive() && $user->isSuperAdmin();
     }
 }

@@ -16,3 +16,7 @@ Schedule::command('app:close-finished-events')
 Schedule::command('certificates:send-expiry-reminders')
     ->daily()
     ->withoutOverlapping();
+
+Schedule::command('certificates:prune-expired-records')
+    ->daily()
+    ->withoutOverlapping();

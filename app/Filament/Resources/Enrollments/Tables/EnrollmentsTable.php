@@ -7,6 +7,7 @@ use App\Enums\EventType;
 use App\Mail\EnrollmentStatusChangedNotification;
 use App\Models\AuditLog;
 use App\Models\Enrollment;
+use App\Support\CsvSanitizer;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkAction;
@@ -219,7 +220,7 @@ class EnrollmentsTable
                             $handle = fopen('php://output', 'w');
                             fwrite($handle, "\xEF\xBB\xBF");
 
-                            fputcsv($handle, [
+                            fputcsv($handle, CsvSanitizer::sanitizeRow([
                                 'ID Pendaftaran',
                                 'Nama Lengkap (KTP)',
                                 'Email',
@@ -234,11 +235,11 @@ class EnrollmentsTable
                                 'Status Pendaftaran',
                                 'Catatan Admin',
                                 'Waktu Mendaftar',
-                            ]);
+                            ]));
 
                             foreach ($records as $item) {
                                 $profile = $item->user?->profile;
-                                fputcsv($handle, [
+                                fputcsv($handle, CsvSanitizer::sanitizeRow([
                                     $item->id,
                                     $profile?->full_name_ktp ?? $item->user?->name ?? '-',
                                     $item->user?->email ?? '-',
@@ -253,7 +254,7 @@ class EnrollmentsTable
                                     $item->status->label(),
                                     $item->admin_notes ?? '-',
                                     $item->created_at?->format('Y-m-d H:i:s'),
-                                ]);
+                                ]));
                             }
 
                             fclose($handle);
@@ -289,7 +290,7 @@ class EnrollmentsTable
                             $handle = fopen('php://output', 'w');
                             fwrite($handle, "\xEF\xBB\xBF");
 
-                            fputcsv($handle, [
+                            fputcsv($handle, CsvSanitizer::sanitizeRow([
                                 'ID Pendaftaran',
                                 'Nama Lengkap (KTP)',
                                 'NIK Lengkap',
@@ -303,11 +304,11 @@ class EnrollmentsTable
                                 'Jenis Kegiatan',
                                 'Status Pendaftaran',
                                 'Waktu Mendaftar',
-                            ]);
+                            ]));
 
                             foreach ($records as $item) {
                                 $profile = $item->user?->profile;
-                                fputcsv($handle, [
+                                fputcsv($handle, CsvSanitizer::sanitizeRow([
                                     $item->id,
                                     $profile?->full_name_ktp ?? $item->user?->name ?? '-',
                                     $profile?->nik ?? '-', // NIK Lengkap didekripsi via model cast
@@ -321,7 +322,7 @@ class EnrollmentsTable
                                     $item->event?->type?->label() ?? '-',
                                     $item->status->label(),
                                     $item->created_at?->format('Y-m-d H:i:s'),
-                                ]);
+                                ]));
                             }
 
                             fclose($handle);

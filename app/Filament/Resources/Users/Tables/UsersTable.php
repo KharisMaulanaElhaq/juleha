@@ -489,6 +489,7 @@ class UsersTable
                                     'file_name' => null,
                                     'file_size' => null,
                                     'file_sha256' => null,
+                                    'holder_data_erased_at' => now(),
                                 ]);
                             }
 

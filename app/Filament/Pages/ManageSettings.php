@@ -140,6 +140,7 @@ class ManageSettings extends Page implements HasForms
             'cert_validity_years' => (string) ($allSettings['cert_validity_years'] ?? '3'),
             'cert_form_note' => $allSettings['cert_form_note'] ?? 'digital',
             'cert_reminder_enabled' => ($allSettings['cert_reminder_enabled'] ?? '1') === '1',
+            'cert_record_retention_years' => (string) ($allSettings['cert_record_retention_years'] ?? ''),
         ]);
     }
 
@@ -409,6 +410,14 @@ class ManageSettings extends Page implements HasForms
                                             ->helperText('Kirim email pengingat kepada peserta pada 180, 90, 30 hari sebelum masa berlaku habis dan saat kedaluwarsa.')
                                             ->default(true)
                                             ->columnSpanFull(),
+
+                                        TextInput::make('cert_record_retention_years')
+                                            ->label('Masa Retensi Catatan Minimal Setelah Kedaluwarsa (Tahun)')
+                                            ->numeric()
+                                            ->minValue(1)
+                                            ->placeholder('Kosongkan jika belum ditetapkan')
+                                            ->helperText('Berapa tahun catatan minimal sertifikat dipertahankan setelah tanggal masa berlaku berakhir. Kosongkan jika belum ditetapkan (kebijakan masa retensi diputuskan oleh Pengurus DPD bersama LSP penerbit). Selama kosong, sistem tidak akan menghapus catatan sertifikat apa pun secara otomatis.')
+                                            ->columnSpanFull(),
                                     ]),
                             ]),
                     ]),
@@ -527,6 +536,7 @@ class ManageSettings extends Page implements HasForms
         Setting::set('cert_validity_years', (string) ($state['cert_validity_years'] ?? '3'), 'certification');
         Setting::set('cert_form_note', trim($state['cert_form_note'] ?? 'digital'), 'certification');
         Setting::set('cert_reminder_enabled', ! empty($state['cert_reminder_enabled']) ? '1' : '0', 'certification');
+        Setting::set('cert_record_retention_years', trim($state['cert_record_retention_years'] ?? ''), 'certification');
 
         $this->rememberData();
         Setting::clearCache();

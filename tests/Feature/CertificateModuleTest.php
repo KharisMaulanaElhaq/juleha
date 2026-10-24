@@ -11,6 +11,7 @@ use App\Models\Event;
 use App\Models\ParticipantProfile;
 use App\Models\Setting;
 use App\Models\User;
+use App\Policies\UserPolicy;
 use App\Services\CertificateService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -170,9 +171,15 @@ class CertificateModuleTest extends TestCase
             ->assertDontSee('kharis@julehabrebes.org') // Email TIDAK MUNCUL
             ->assertDontSee('Pesantunan'); // Desa TIDAK MUNCUL
 
-        // Verifikasi pencarian nomor via form
+        // Verifikasi pencarian nomor via form oleh pengunjung umum (tidak menampilkan nama pemegang)
+        auth()->logout();
         $searchResponse = $this->get(route('certificate.verify', ['q' => '001/LSP-P/BNSP/2026']));
-        $searchResponse->assertRedirect(route('certificate.verify.code', $certificate->public_code));
+        $searchResponse->assertOk()
+            ->assertSee('001/LSP-P/BNSP/2026')
+            ->assertSee('Juru Sembelih Halal Level 2')
+            ->assertDontSee('Kharis Maulana Elhaq')
+            ->assertDontSee('Kharis M. E.')
+            ->assertDontSee('Nama Pemegang (Tersamar UU PDP)');
     }
 
     public function test_valid_until_respects_cert_validity_years_setting(): void
@@ -581,6 +588,7 @@ class CertificateModuleTest extends TestCase
                 'file_name' => null,
                 'file_size' => null,
                 'file_sha256' => null,
+                'holder_data_erased_at' => now(),
             ]);
         }
         $participant->delete();
@@ -589,13 +597,220 @@ class CertificateModuleTest extends TestCase
         Storage::disk('private')->assertMissing($storedPath);
         $this->assertNull($cert->fresh()->file_path);
 
-        // Verifikasi publik: Nomor sertifikat tetap ada dan valid, namun nama tersamar secara anonim
+        // Verifikasi status model: Berstatus "Data Pemegang Dihapus" dan TIDAK dicabut
+        $freshCert = $cert->fresh();
+        $this->assertTrue($freshCert->isHolderDataErased());
+        $this->assertFalse($freshCert->isRevoked());
+        $this->assertEquals(Certificate::STATUS_DATA_DIHAPUS, $freshCert->computed_status);
+        $this->assertEquals('Data Pemegang Dihapus', $freshCert->status_label);
+
+        // Verifikasi publik: Nomor sertifikat tetap ada dan valid, nama tampil "Data pemegang telah dihapus"
         $verifyRes = $this->get(route('certificate.verify.code', $cert->public_code));
         $verifyRes->assertOk()
             ->assertSee('ANON-CERT-007')
             ->assertSee('Juru Sembelih Halal')
-            ->assertSee('Pengguna D.') // Nama teranonimkan
+            ->assertSee('Data pemegang telah dihapus')
+            ->assertDontSee('Pengguna D.')
+            ->assertDontSee('Dicabut')
             ->assertDontSee('Ahmad Muzani')
             ->assertDontSee('3329019999990001');
+    }
+
+    public function test_force_delete_user_with_certificates_is_forbidden(): void
+    {
+        $superAdmin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+        $participant = User::factory()->create(['role' => User::ROLE_PARTICIPANT]);
+        $event = $this->createEvent();
+        $enrollment = Enrollment::create([
+            'user_id' => $participant->id,
+            'event_id' => $event->id,
+            'status' => EnrollmentStatus::Selesai,
+        ]);
+
+        CertificateService::recordResult($enrollment, [
+            'result' => Certificate::RESULT_KOMPETEN,
+            'scheme_name' => 'Juru Sembelih Halal',
+            'certificate_number' => 'FORCE-DEL-CHECK',
+            'issued_at' => '2026-03-01',
+        ]);
+
+        // Policy harus menolak force delete untuk akun yang punya sertifikat
+        $policy = new UserPolicy;
+        $this->assertFalse($policy->forceDelete($superAdmin, $participant));
+
+        // Eloquent deleting hook harus melempar LogicException jika dipaksa forceDelete
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('Akun yang memiliki riwayat sertifikat tidak boleh dihapus permanen');
+
+        $participant->forceDelete();
+    }
+
+    public function test_certificate_retention_command_prunes_only_when_setting_is_present(): void
+    {
+        $participant = User::factory()->create(['role' => User::ROLE_PARTICIPANT]);
+        $event = $this->createEvent();
+        $enrollment = Enrollment::create([
+            'user_id' => $participant->id,
+            'event_id' => $event->id,
+            'status' => EnrollmentStatus::Selesai,
+        ]);
+
+        // Buat sertifikat yang sudah kedaluwarsa 4 tahun lalu (valid_until = 4 tahun lalu)
+        $oldCert = Certificate::create([
+            'enrollment_id' => $enrollment->id,
+            'user_id' => $participant->id,
+            'event_id' => $event->id,
+            'result' => Certificate::RESULT_KOMPETEN,
+            'scheme_name' => 'Juru Sembelih Halal',
+            'certificate_number' => 'RETENTION-EXPIRED-001',
+            'issued_at' => now()->subYears(7)->toDateString(),
+            'valid_until' => now()->subYears(4)->toDateString(),
+        ]);
+
+        // A. Saat cert_record_retention_years kosong / belum ditetapkan: tidak boleh menghapus apapun
+        Setting::set('cert_record_retention_years', '');
+        $this->artisan('certificates:prune-expired-records')
+            ->expectsOutputToContain('belum ditetapkan')
+            ->assertSuccessful();
+
+        $this->assertDatabaseHas('certificates', ['id' => $oldCert->id]);
+
+        // B. Saat cert_record_retention_years diatur (misal 3 tahun):
+        // Batas retensi: valid_until <= 3 tahun lalu. Sertifikat ini kedaluwarsa 4 tahun lalu, sehingga wajib dibersihkan!
+        Setting::set('cert_record_retention_years', '3');
+        $this->artisan('certificates:prune-expired-records')
+            ->expectsOutputToContain('Berhasil membersihkan 1 catatan sertifikat')
+            ->assertSuccessful();
+
+        $this->assertDatabaseMissing('certificates', ['id' => $oldCert->id]);
+    }
+
+    public function test_revoked_certificate_verification_displays_revoked_without_name_or_internal_reason(): void
+    {
+        $superAdmin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
+        $participant = User::factory()->create([
+            'role' => User::ROLE_PARTICIPANT,
+            'name' => 'Syaifuddin Zuhri',
+        ]);
+        $event = $this->createEvent();
+        $enrollment = Enrollment::create([
+            'user_id' => $participant->id,
+            'event_id' => $event->id,
+            'status' => EnrollmentStatus::Selesai,
+        ]);
+
+        $cert = CertificateService::recordResult($enrollment, [
+            'result' => Certificate::RESULT_KOMPETEN,
+            'scheme_name' => 'Juru Sembelih Halal',
+            'certificate_number' => 'REVOKED-TEST-99',
+            'issued_at' => '2026-01-01',
+        ]);
+
+        // Cabut sertifikat dengan alasan internal rahasia
+        CertificateService::revoke($cert, 'Pelanggaran Disiplin Internal Organisasi Berat', $superAdmin->id);
+
+        $response = $this->get(route('certificate.verify.code', $cert->public_code));
+        $response->assertOk()
+            ->assertSee('Dicabut')
+            ->assertSee('Sertifikat dengan nomor ini telah dicabut')
+            ->assertDontSee('Syaifuddin Zuhri')
+            ->assertDontSee('Syaifuddin Z.')
+            ->assertDontSee('Pelanggaran Disiplin Internal Organisasi Berat'); // Alasan internal tidak boleh bocor
+    }
+
+    public function test_search_by_number_does_not_display_holder_name(): void
+    {
+        $participant = User::factory()->create([
+            'role' => User::ROLE_PARTICIPANT,
+            'name' => 'Bambang Trihatmodjo',
+        ]);
+        $event = $this->createEvent();
+        $enrollment = Enrollment::create([
+            'user_id' => $participant->id,
+            'event_id' => $event->id,
+            'status' => EnrollmentStatus::Selesai,
+        ]);
+
+        $cert = CertificateService::recordResult($enrollment, [
+            'result' => Certificate::RESULT_KOMPETEN,
+            'scheme_name' => 'Juru Sembelih Halal',
+            'certificate_number' => 'SEARCH-NO-NAME-123',
+            'issued_at' => '2026-01-10',
+        ]);
+
+        // Cari via nomor sertifikat (/verifikasi?q=...)
+        $response = $this->get(route('certificate.verify', ['q' => 'SEARCH-NO-NAME-123']));
+        $response->assertOk()
+            ->assertSee('SEARCH-NO-NAME-123')
+            ->assertSee('Juru Sembelih Halal')
+            ->assertSee('Status Sertifikat: Aktif')
+            ->assertDontSee('Bambang Trihatmodjo')
+            ->assertDontSee('Bambang T.'); // Nama pemegang TIDAK boleh tampil pada pencarian nomor
+    }
+
+    public function test_verification_not_found_and_belum_kompeten_return_neutral_response(): void
+    {
+        $participant = User::factory()->create(['role' => User::ROLE_PARTICIPANT]);
+        $event = $this->createEvent();
+        $enrollment = Enrollment::create([
+            'user_id' => $participant->id,
+            'event_id' => $event->id,
+            'status' => EnrollmentStatus::Selesai,
+        ]);
+
+        // Catat hasil belum kompeten
+        CertificateService::recordResult($enrollment, [
+            'result' => Certificate::RESULT_BELUM_KOMPETEN,
+            'scheme_name' => 'Juru Sembelih Halal',
+            'certificate_number' => 'BELUM-KOMPETEN-001',
+        ]);
+
+        // A. Pencarian nomor yang tidak ada: respon netral
+        $responseNotFound = $this->get(route('certificate.verify', ['q' => 'NOMOR-TIDAK-ADA-999']));
+        $responseNotFound->assertOk()
+            ->assertSee('Catatan sertifikat tidak ditemukan dalam basis data DPD JULEHA Kabupaten Brebes.');
+
+        // B. Pencarian nomor belum kompeten: tetap respon netral seragam (tidak pernah tampil)
+        $responseBelum = $this->get(route('certificate.verify', ['q' => 'BELUM-KOMPETEN-001']));
+        $responseBelum->assertOk()
+            ->assertSee('Catatan sertifikat tidak ditemukan dalam basis data DPD JULEHA Kabupaten Brebes.');
+
+        // C. Tautan public code acak yang tidak ada: respon netral seragam
+        $responseInvalidCode = $this->get(route('certificate.verify.code', 'KODEACAK9999'));
+        $responseInvalidCode->assertOk()
+            ->assertSee('Catatan sertifikat tidak ditemukan dalam basis data DPD JULEHA Kabupaten Brebes.');
+    }
+
+    public function test_download_response_has_required_security_headers(): void
+    {
+        $participant = User::factory()->create([
+            'role' => User::ROLE_PARTICIPANT,
+            'name' => 'Mochamad Ridwan',
+        ]);
+        $event = $this->createEvent();
+        $enrollment = Enrollment::create([
+            'user_id' => $participant->id,
+            'event_id' => $event->id,
+            'status' => EnrollmentStatus::Selesai,
+        ]);
+
+        $cert = CertificateService::recordResult($enrollment, [
+            'result' => Certificate::RESULT_KOMPETEN,
+            'scheme_name' => 'Juru Sembelih Halal',
+            'certificate_number' => 'HEADER-TEST-001',
+            'issued_at' => '2026-03-01',
+        ]);
+
+        $pdf = $this->createRealPdfFile('cert-ridwan.pdf');
+        CertificateService::uploadPdf($cert, $pdf);
+
+        $response = $this->actingAs($participant)->get(route('participant.certificates.download', $cert));
+        $response->assertOk();
+
+        // Verifikasi seluruh header keamanan unduhan yang diwajibkan
+        $this->assertEquals('application/pdf', $response->headers->get('Content-Type'));
+        $this->assertStringContainsString('attachment', (string) $response->headers->get('Content-Disposition'));
+        $this->assertEquals('nosniff', $response->headers->get('X-Content-Type-Options'));
+        $this->assertStringContainsString('no-store', (string) $response->headers->get('Cache-Control'));
     }
 }

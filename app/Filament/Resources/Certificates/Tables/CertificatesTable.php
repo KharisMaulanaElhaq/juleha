@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Certificates\Tables;
 use App\Enums\EventType;
 use App\Models\Certificate;
 use App\Services\CertificateService;
+use App\Support\CsvSanitizer;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\DeleteAction;
@@ -255,7 +256,7 @@ class CertificatesTable
                             // Tulis BOM UTF-8 agar karakter Indonesia terbuka rapi di Microsoft Excel
                             fwrite($handle, "\xEF\xBB\xBF");
 
-                            fputcsv($handle, [
+                            fputcsv($handle, CsvSanitizer::sanitizeRow([
                                 'ID Sertifikat',
                                 'Nama Peserta',
                                 'Email',
@@ -269,10 +270,10 @@ class CertificatesTable
                                 'Status',
                                 'Tersedia Berkas',
                                 'Kode Verifikasi Publik',
-                            ]);
+                            ]));
 
                             foreach ($records as $item) {
-                                fputcsv($handle, [
+                                fputcsv($handle, CsvSanitizer::sanitizeRow([
                                     $item->id,
                                     $item->user?->name ?? '-',
                                     $item->user?->email ?? '-',
@@ -286,7 +287,7 @@ class CertificatesTable
                                     $item->status_label,
                                     $item->file_path ? 'Ya' : 'Tidak',
                                     $item->public_code,
-                                ]);
+                                ]));
                             }
 
                             fclose($handle);

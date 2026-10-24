@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Users\Pages;
 use App\Filament\Resources\Users\UserResource;
 use App\Models\AuditLog;
 use App\Models\User;
+use App\Support\CsvSanitizer;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
 use Filament\Forms\Components\Toggle;
@@ -86,7 +87,7 @@ class ListUsers extends ListRecords
                             array_splice($columns, 3, 0, ['Nomor WhatsApp']);
                         }
 
-                        fputcsv($handle, $columns);
+                        fputcsv($handle, CsvSanitizer::sanitizeRow($columns));
 
                         foreach ($records as $item) {
                             $profile = $item->profile;
@@ -112,7 +113,7 @@ class ListUsers extends ListRecords
                                 array_splice($row, 3, 0, [$profile?->phone ? "'".$profile->phone : '-']);
                             }
 
-                            fputcsv($handle, $row);
+                            fputcsv($handle, CsvSanitizer::sanitizeRow($row));
                         }
 
                         fclose($handle);
@@ -149,7 +150,7 @@ class ListUsers extends ListRecords
                         $handle = fopen('php://output', 'w');
                         fwrite($handle, "\xEF\xBB\xBF");
 
-                        fputcsv($handle, [
+                        fputcsv($handle, CsvSanitizer::sanitizeRow([
                             'ID Pengguna',
                             'Nama Lengkap',
                             'Nama Sesuai KTP',
@@ -161,11 +162,11 @@ class ListUsers extends ListRecords
                             'Kecamatan',
                             'Desa/Kelurahan',
                             'Tanggal Bergabung',
-                        ]);
+                        ]));
 
                         foreach ($records as $item) {
                             $profile = $item->profile;
-                            fputcsv($handle, [
+                            fputcsv($handle, CsvSanitizer::sanitizeRow([
                                 $item->id,
                                 $item->name,
                                 $profile?->full_name_ktp ?? $item->name,
@@ -182,7 +183,7 @@ class ListUsers extends ListRecords
                                 $profile?->district ?? '-',
                                 $profile?->village ?? '-',
                                 $item->created_at?->format('Y-m-d H:i:s'),
-                            ]);
+                            ]));
                         }
 
                         fclose($handle);

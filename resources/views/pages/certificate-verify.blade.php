@@ -102,15 +102,17 @@
                 $isRevoked = $certificate->isRevoked();
                 $isExpired = $certificate->isExpired();
                 $isExpiringSoon = $certificate->isExpiringSoon();
+                $isHolderErased = $certificate->isHolderDataErased();
                 $status = $certificate->computed_status;
+                $showHolderName = (! $isSearchByNumber) && (! $isRevoked);
             @endphp
 
-            <div class="rounded-3xl bg-white dark:bg-slate-800 shadow-2xl border-2 {{ $isRevoked ? 'border-red-500' : 'border-emerald-500' }} overflow-hidden">
+            <div class="rounded-3xl bg-white dark:bg-slate-800 shadow-2xl border-2 {{ $isRevoked ? 'border-red-500' : ($isHolderErased ? 'border-slate-500' : 'border-emerald-500') }} overflow-hidden">
                 
                 <!-- Status Top Bar -->
-                <div class="px-6 py-4 {{ $isRevoked ? 'bg-red-600 text-white' : ($isExpired ? 'bg-rose-600 text-white' : ($isExpiringSoon ? 'bg-amber-600 text-white' : 'bg-emerald-600 text-white')) }} flex items-center justify-between gap-3">
+                <div class="px-6 py-4 {{ $isRevoked ? 'bg-red-600 text-white' : ($isHolderErased ? 'bg-slate-700 text-white' : ($isExpired ? 'bg-rose-600 text-white' : ($isExpiringSoon ? 'bg-amber-600 text-white' : 'bg-emerald-600 text-white'))) }} flex items-center justify-between gap-3">
                     <div class="flex items-center gap-2 font-bold text-sm uppercase tracking-wider">
-                        <i data-lucide="{{ $isRevoked ? 'alert-triangle' : ($isExpired ? 'x-circle' : 'check-circle-2') }}" class="w-5 h-5"></i>
+                        <i data-lucide="{{ $isRevoked ? 'alert-triangle' : ($isHolderErased ? 'user-x' : ($isExpired ? 'x-circle' : 'check-circle-2')) }}" class="w-5 h-5"></i>
                         <span>Status Sertifikat: {{ $certificate->status_label }}</span>
                     </div>
                     <span class="text-xs opacity-90 hidden sm:inline">Basis Data DPD JULEHA Brebes</span>
@@ -120,13 +122,31 @@
 
                     <!-- Kartu Informasi Terverifikasi -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-6 border-b border-slate-200 dark:border-slate-700">
-                        <div class="space-y-1">
-                            <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 block">Nama Pemegang (Tersamar UU PDP)</span>
-                            <span class="text-base sm:text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
-                                <i data-lucide="user-check" class="w-5 h-5 text-emerald-600 dark:text-emerald-400"></i>
-                                <span>{{ $certificate->masked_holder_name }}</span>
-                            </span>
-                        </div>
+                        @if($showHolderName)
+                            <div class="space-y-1">
+                                <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 block">Nama Pemegang (Tersamar UU PDP)</span>
+                                <span class="text-base sm:text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
+                                    <i data-lucide="{{ $isHolderErased ? 'user-minus' : 'user-check' }}" class="w-5 h-5 {{ $isHolderErased ? 'text-slate-500' : 'text-emerald-600 dark:text-emerald-400' }}"></i>
+                                    <span>{{ $certificate->masked_holder_name }}</span>
+                                </span>
+                            </div>
+                        @elseif($isSearchByNumber && ! $isRevoked)
+                            <div class="space-y-1">
+                                <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 block">Identitas Pemegang</span>
+                                <span class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 flex items-start gap-1.5 leading-relaxed">
+                                    <i data-lucide="shield-alert" class="w-4 h-4 text-amber-500 shrink-0 mt-0.5"></i>
+                                    <span>Nama pemegang hanya dapat diverifikasi melalui tautan / QR Code resmi sertifikat (UU PDP).</span>
+                                </span>
+                            </div>
+                        @elseif($isRevoked)
+                            <div class="space-y-1">
+                                <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 block">Status Catatan</span>
+                                <span class="text-base font-bold text-red-600 dark:text-red-400 flex items-center gap-2">
+                                    <i data-lucide="ban" class="w-5 h-5"></i>
+                                    <span>Sertifikat Telah Dicabut</span>
+                                </span>
+                            </div>
+                        @endif
 
                         <div class="space-y-1">
                             <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 block">Nomor Sertifikat</span>
@@ -162,8 +182,10 @@
                     @if($isRevoked)
                         <div class="p-4 rounded-2xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/60 text-xs text-red-800 dark:text-red-200 space-y-1">
                             <p class="font-bold">Perhatian: Sertifikat ini telah dicabut.</p>
-                            <p><span class="font-semibold">Alasan Pencabutan:</span> {{ $certificate->revoked_reason }}</p>
-                            <p><span class="font-semibold">Tanggal Pencabutan:</span> {{ $certificate->revoked_at?->translatedFormat('d F Y H:i') }} WIB</p>
+                            <p>Sertifikat dengan nomor ini telah dicabut dari catatan kepengurusan resmi DPD JULEHA Kabupaten Brebes dan tidak lagi berlaku.</p>
+                            @if($certificate->revoked_at)
+                                <p class="text-[11px] text-red-700 dark:text-red-300">Tanggal Pencabutan: {{ $certificate->revoked_at->translatedFormat('d F Y') }}</p>
+                            @endif
                         </div>
                     @endif
 
@@ -171,7 +193,7 @@
                     <div class="pt-4 border-t border-slate-100 dark:border-slate-700/60 flex items-start gap-2.5 text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
                         <i data-lucide="shield" class="w-4 h-4 text-slate-400 shrink-0 mt-0.5"></i>
                         <span>
-                            Sesuai ketentuan UU No. 27 Tahun 2022 tentang Pelindungan Data Pribadi (UU PDP), identitas pemegang sertifikat disamarkan sebagian dan data kontak/domisili tidak dipublikasikan ke publik.
+                            Sesuai ketentuan UU No. 27 Tahun 2022 tentang Pelindungan Data Pribadi (UU PDP), identitas pemegang sertifikat dilindungi, nama disamarkan, dan data kontak/domisili tidak dipublikasikan ke publik.
                         </span>
                     </div>
 

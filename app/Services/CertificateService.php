@@ -283,7 +283,9 @@ class CertificateService
 
         $headers = [
             'Content-Type' => 'application/pdf',
-            'Cache-Control' => 'private, no-cache, no-store, must-revalidate',
+            'Content-Disposition' => 'attachment; filename="'.$certificate->download_file_name.'"',
+            'X-Content-Type-Options' => 'nosniff',
+            'Cache-Control' => 'no-store, private, no-cache, must-revalidate',
             'Pragma' => 'no-cache',
             'Expires' => '0',
         ];
@@ -316,7 +318,9 @@ class CertificateService
 
         $headers = [
             'Content-Type' => 'application/pdf',
-            'Cache-Control' => 'private, no-cache, no-store, must-revalidate',
+            'Content-Disposition' => 'attachment; filename="'.$certificate->download_file_name.'"',
+            'X-Content-Type-Options' => 'nosniff',
+            'Cache-Control' => 'no-store, private, no-cache, must-revalidate',
             'Pragma' => 'no-cache',
             'Expires' => '0',
         ];

@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Registrations\Tables;
 
 use App\Models\Registration;
+use App\Support\CsvSanitizer;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkAction;
@@ -145,7 +146,7 @@ class RegistrationsTable
                             $handle = fopen('php://output', 'w');
                             fwrite($handle, "\xEF\xBB\xBF");
 
-                            fputcsv($handle, [
+                            fputcsv($handle, CsvSanitizer::sanitizeRow([
                                 'Kode Registrasi',
                                 'Nama Lengkap',
                                 'Nomor WhatsApp',
@@ -156,10 +157,10 @@ class RegistrationsTable
                                 'Status',
                                 'Kegiatan Bimtek',
                                 'Waktu Pendaftaran',
-                            ]);
+                            ]));
 
                             foreach ($records as $reg) {
-                                fputcsv($handle, [
+                                fputcsv($handle, CsvSanitizer::sanitizeRow([
                                     $reg->code,
                                     $reg->full_name,
                                     $reg->phone,
@@ -170,7 +171,7 @@ class RegistrationsTable
                                     $reg->status_label,
                                     $reg->event?->title ?? '-',
                                     $reg->created_at->format('Y-m-d H:i:s'),
-                                ]);
+                                ]));
                             }
 
                             fclose($handle);

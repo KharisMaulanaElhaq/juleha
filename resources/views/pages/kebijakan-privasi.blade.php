@@ -94,8 +94,33 @@
                 <ul class="list-disc pl-6 space-y-2 mt-2">
                     <li><strong>Hak Akses:</strong> Anda berhak melihat data pribadi Anda kapan saja melalui halaman Profil Peserta di portal ini.</li>
                     <li><strong>Hak Koreksi:</strong> Anda berhak memperbaiki atau memperbarui nama, nomor kontak, maupun alamat jika ada kesalahan sebelum sertifikat resmi diterbitkan.</li>
-                    <li><strong>Hak Penghapusan:</strong> Anda berhak meminta penghapusan akun dan data pribadi dari sistem kami setelah kegiatan selesai atau jika Anda tidak lagi menjadi peserta, dengan menghubungi sekretariat DPD.</li>
+                    <li><strong>Hak Penghapusan & Anonimisasi:</strong> Anda berhak meminta penghapusan akun dan data pribadi dari sistem kami sesuai UU Perlindungan Data Pribadi (UU PDP).</li>
                 </ul>
+            </div>
+
+            <div>
+                <h2 class="font-heading font-bold text-xl sm:text-2xl text-slate-800 dark:text-white border-b border-slate-200 dark:border-slate-800 pb-2">
+                    6. Kebijakan Penghapusan Data (Anonimisasi) & Masa Retensi Sertifikat
+                </h2>
+                <div class="mt-3 space-y-3 text-slate-700 dark:text-slate-300 leading-relaxed text-sm sm:text-base">
+                    <p>
+                        Bagi peserta yang telah menyelesaikan uji kompetensi dan memiliki sertifikat resmi, DPD JULEHA Kabupaten Brebes menerapkan kebijakan kepatuhan UU PDP sebagai berikut:
+                    </p>
+                    <ul class="list-disc pl-6 space-y-2">
+                        <li>
+                            <strong>Apa yang Dihapus:</strong> Saat permohonan penghapusan data diproses, seluruh data identitas pribadi Anda (Nama lengkap KTP, NIK terenkripsi, nomor WhatsApp, alamat domisili, email) serta berkas fisik PDF sertifikat di server privat akan <em>dihapus secara permanen</em>.
+                        </li>
+                        <li>
+                            <strong>Apa yang Tetap Disimpan & Alasannya:</strong> Catatan teknis minimal sertifikat (Nomor Sertifikat, Skema Sertifikasi, Lembaga Penerbit, Tanggal Terbit, Masa Berlaku, dan Kode Verifikasi Publik) tetap disimpan dalam basis data. Hal ini diwajibkan demi integritas sertifikasi profesi nasional, mencegah sertifikat palsu, dan memungkinkan pihak ketiga (seperti RPH, dinas terkait, atau takmir masjid) memverifikasi bahwa sertifikat tersebut pernah sah diterbitkan.
+                        </li>
+                        <li>
+                            <strong>Tampilan Tanpa Identitas:</strong> Sertifikat milik akun yang telah dihapus datanya berstatus <em>"Data Pemegang Dihapus"</em> (bukan dicabut). Pada halaman verifikasi publik, nama pemegang ditampilkan sebagai teks <strong>"Data pemegang telah dihapus"</strong> tanpa membocorkan identitas apa pun.
+                        </li>
+                        <li>
+                            <strong>Masa Retensi:</strong> Catatan teknis minimal dipertahankan selama sertifikat aktif ditambah masa retensi yang ditetapkan oleh Pengurus DPD bersama LSP penerbit (kebijakan retensi diputuskan bersama LSP). Setelah melewati batas retensi tersebut, catatan minimal akan dihapus permanen secara otomatis oleh sistem.
+                        </li>
+                    </ul>
+                </div>
             </div>
 
             <div class="bg-slate-50 dark:bg-slate-800/60 p-6 rounded-2xl border border-slate-200 dark:border-slate-700">

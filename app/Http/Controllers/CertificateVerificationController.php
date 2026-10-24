@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Certificate;
 use App\Models\Setting;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class CertificateVerificationController extends Controller
 {
@@ -12,6 +13,7 @@ class CertificateVerificationController extends Controller
 
     /**
      * Tampilkan halaman formulir pencarian verifikasi nomor sertifikat.
+     * Pencarian via NOMOR sertifikat TIDAK menampilkan nama pemegang.
      */
     public function index(Request $request)
     {
@@ -19,7 +21,20 @@ class CertificateVerificationController extends Controller
         $certificate = null;
         $errorMessage = null;
 
+        $ip = $request->ip() ?: 'unknown';
+        $failKey = 'cert_verify_fails:'.$ip;
+        $fails = (int) Cache::get($failKey, 0);
+
         if (! empty($queryNumber)) {
+            // Terapkan penundaan atau throttle lebih ketat jika terjadi beberapa pencarian gagal beruntun
+            if ($fails >= 8) {
+                abort(429, 'Terlalu banyak percobaan pencarian yang gagal. Silakan coba lagi beberapa menit lagi.');
+            }
+
+            if ($fails >= 3) {
+                usleep(300000); // 300ms penundaan untuk memitigasi enumerasi
+            }
+
             // Cari hanya yang kompeten (belum_kompeten tidak pernah ditampilkan)
             $found = Certificate::where('certificate_number', $queryNumber)
                 ->where('result', Certificate::RESULT_KOMPETEN)
@@ -27,19 +42,21 @@ class CertificateVerificationController extends Controller
                 ->first();
 
             if ($found) {
-                // Alihkan ke URL publik berkode unik agar konsisten
-                return redirect()->route('certificate.verify.code', $found->public_code);
+                Cache::forget($failKey);
+                $certificate = $found;
+            } else {
+                Cache::put($failKey, $fails + 1, now()->addMinutes(5));
+                usleep(150000); // Penundaan kecil tambahan pada pencarian gagal
+                $errorMessage = self::NOT_FOUND_MESSAGE;
             }
-
-            // Pesan seragam untuk mencegah enumerasi
-            $errorMessage = self::NOT_FOUND_MESSAGE;
         }
 
         $issuerName = Setting::get('cert_issuer_name', 'LSP Pertanian RI');
         $issuerLicense = Setting::get('cert_issuer_license', '');
 
         return view('pages.certificate-verify', [
-            'certificate' => null,
+            'certificate' => $certificate,
+            'isSearchByNumber' => true,
             'queryNumber' => $queryNumber,
             'errorMessage' => $errorMessage,
             'issuerName' => $issuerName,
@@ -49,6 +66,8 @@ class CertificateVerificationController extends Controller
 
     /**
      * Tampilkan hasil verifikasi langsung berdasarkan public_code unik.
+     * Menampilkan nama pemegang tersamar (atau keterangan data pemegang dihapus jika akun dianonimkan).
+     * Jika sertifikat dicabut, nama pemegang dan alasan internal TIDAK ditampilkan.
      */
     public function show(string $public_code)
     {
@@ -63,6 +82,7 @@ class CertificateVerificationController extends Controller
         if (! $certificate) {
             return view('pages.certificate-verify', [
                 'certificate' => null,
+                'isSearchByNumber' => false,
                 'queryNumber' => '',
                 'errorMessage' => self::NOT_FOUND_MESSAGE,
                 'issuerName' => $issuerName,
@@ -72,6 +92,7 @@ class CertificateVerificationController extends Controller
 
         return view('pages.certificate-verify', [
             'certificate' => $certificate,
+            'isSearchByNumber' => false,
             'queryNumber' => $certificate->certificate_number,
             'errorMessage' => null,
             'issuerName' => $issuerName,

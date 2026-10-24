@@ -116,11 +116,14 @@ Berdasarkan Pasal 39 UU PDP, subjek data (peserta) berhak meminta pembaruan, per
 2. Petugas memverifikasi identitas pemohon dengan mencocokkan email Google dan nomor WhatsApp terdaftar.
 
 ### B. Ketentuan Penghapusan & Anonimisasi Akun (Kebijakan Terpilih: Opsi A)
-- **Akun Belum Memiliki Sertifikat**: Data profil (`participant_profiles`) dan akun pengguna (`users`) akan dihapus secara permanen (*hard delete*) jika tidak memiliki riwayat kehadiran/pendaftaran.
+- **Akun Belum Memiliki Riwayat/Sertifikat**: Data profil (`participant_profiles`) dan akun pengguna (`users`) dapat dihapus (*soft delete* atau *hard delete* jika tanpa riwayat).
 - **Akun Telah Memiliki Sertifikat Resmi (Uji Kompetensi LSP)**:
+  - **Larangan Hapus Permanen**: Akun yang memiliki catatan sertifikat **TIDAK BOLEH dihapus permanen (*force delete*)**, melainkan hanya dapat dianonimkan (*anonymize*).
   - **Penghapusan Berkas Digital**: Berkas fisik sertifikat PDF milik peserta di penyimpanan privat (*private storage*) **dihapus secara permanen** demi menjaga privasi dokumen peserta.
   - **Retensi Catatan Minimal Verifikasi**: Catatan data teknis sertifikat di basis data (`certificate_number`, `scheme_name`, `issuer_name`, `issued_at`, `valid_until`, `public_code`) **tetap dipertahankan** demi integritas verifikasi pihak ketiga (seperti Rumah Pemotongan Hewan, dinas pemerintah, atau masjid yang mengecek keabsahan nomor sertifikat yang pernah diterbitkan).
-  - **Anonimisasi Identitas Pemegang**: Nama peserta diganti dengan format teranonimkan (`Pengguna Dihapus #[ID]`), NIK, NIK hash, WhatsApp, email, dan alamat domisili dihapus permanen. Pada halaman verifikasi publik, nama akan tampil disamarkan secara anonim ("Pengguna D.") tanpa membocorkan identitas pemohon.
+  - **Anonimisasi Identitas Pemegang**: Nama peserta diganti dengan format teranonimkan (`Pengguna Dihapus #[ID]`), NIK, NIK hash, WhatsApp, email, dan alamat domisili dihapus permanen. Kolom `holder_data_erased_at` dicatat dengan waktu saat ini.
+  - **Status Terpisah dari Dicabut**: Sertifikat milik akun yang dianonimkan berstatus **"Data Pemegang Dihapus"** dan **TIDAK ditandai Dicabut**, karena penghapusan data privasi bukan merupakan sanksi pencabutan profesi. Pada halaman verifikasi publik, nama pemegang tampil sebagai teks **"Data pemegang telah dihapus"**.
+  - **Masa Retensi Catatan Minimal**: Catatan teknis sertifikat dipertahankan selama masa berlaku aktif ditambah masa retensi yang dikonfigurasi pada pengaturan situs `cert_record_retention_years`. Selama pengaturan ini kosong (belum ditetapkan), sistem tidak menghapus catatan apa pun secara otomatis. Nilai masa retensi ini diputuskan oleh Pengurus DPD bersama LSP penerbit. Apabila terisi, scheduled command `certificates:prune-expired-records` akan membersihkan catatan teknis setelah melewati batas `valid_until + cert_record_retention_years`.
 - Log audit aksi dianonimkan dicatat di `audit_logs` dengan aksi `anonymized`.
 
 ---
@@ -131,9 +134,11 @@ Berdasarkan Pasal 39 UU PDP, subjek data (peserta) berhak meminta pembaruan, per
 1. DPD JULEHA Kabupaten Brebes bertindak sebagai penyelenggara/fasilitator uji kompetensi. Sertifikat digital diterbitkan oleh LSP berlisensi BNSP (default: **LSP Pertanian RI**).
 2. **Ekspor Data Peserta untuk LSP**:
    - Hanya dapat dilakukan oleh **Super Admin** (`super_admin`) melalui Relation Manager pada kegiatan jenis `sertifikasi_kompetensi`.
-   - Wajib melalui dialog konfirmasi eksplisit yang mengingatkan bahwa file memuat data pribadi sensitif (Nama sesuai KTP, NIK lengkap, Kontak WhatsApp, Email, dan Domisili).
-   - Seluruh aktivitas ekspor dicatat secara permanen di `audit_logs` dengan aksi `exported_for_lsp`.
-   - File ekspor dikirimkan sebagai stream sekali pakai (*memory stream download*) bertanda UTF-8 BOM, **tidak disimpan permanen** di server web.
+   - Wajib melalui dialog konfirmasi eksplisit yang mengingatkan bahwa data sensitif (termasuk NIK lengkap, Nama sesuai KTP, Kontak WhatsApp, Email, dan Domisili) dibagikan kepada LSP penerbit (`{cert_issuer_name}`).
+   - Seluruh aktivitas ekspor dicatat secara permanen di `audit_logs` dengan aksi `exported_for_lsp` tanpa mencantumkan nilai NIK.
+   - File ekspor dikirimkan sebagai stream sekali pakai (*memory stream download*) bertanda UTF-8 BOM, **tidak disimpan di penyimpanan server** setelah diunduh.
+   - Kolom yang dihasilkan: No, Nama Sesuai KTP, NIK, Nomor WhatsApp, Email, Kecamatan, Desa/Kelurahan.
+   - Seluruh sel teks dinetralkan dari risiko *CSV Formula Injection* (awalan tanda petik tunggal untuk karakter `=`, `+`, `-`, `@`, tab, atau carriage return).
 
 ### B. Penyimpanan & Akses Berkas Sertifikat Digital
 1. Sistem **tidak membuat atau mencetak sertifikat BNSP sendiri**. Sistem hanya menyimpan berkas PDF resmi yang diterbitkan oleh LSP.
@@ -141,20 +146,25 @@ Berdasarkan Pasal 39 UU PDP, subjek data (peserta) berhak meminta pembaruan, per
 3. Akses unduh berkas dikontrol secara ketat:
    - Peserta hanya dapat mengunduh sertifikat miliknya sendiri jika berstatus **Kompeten** dan **tidak dicabut**.
    - Admin Kegiatan & Super Admin dapat mengunduh berkas melalui panel admin, dengan setiap unduhan tercatat di log audit (`downloaded_by_admin`).
-   - Respon unduhan dilengkapi header anti-cache: `Cache-Control: private, no-cache, no-store, must-revalidate`.
+   - Respon unduhan wajib memakai header: `Content-Type: application/pdf`, `Content-Disposition: attachment`, `X-Content-Type-Options: nosniff`, dan `Cache-Control: no-store, private, no-cache, must-revalidate`.
 4. Validasi berkas saat unggah:
    - Format wajib PDF asli, ukuran maksimal 5 MB.
    - Pengecekan *Magic Bytes* (`%PDF-` pada header berkas) untuk menolak berkas palsu yang disamarkan.
    - Perhitungan dan pencatatan *hash* kriptografi **SHA-256** untuk menjamin integritas berkas.
 
 ### C. Verifikasi Publik Tanpa Paparan Data Pribadi
-1. Publik dapat memeriksa keabsahan catatan sertifikat DPD melalui `/verifikasi` (berdasarkan nomor sertifikat) atau tautan acak `/verifikasi/{public_code}`.
-2. **Prinsip Pelindungan Privasi Publik**:
-   - Nama pemegang sertifikat **wajib disamarkan** (nama depan + inisial nama belakang, misal: "Elhaq M.").
-   - Tidak pernah menampilkan NIK, nomor WhatsApp, email, alamat domisili, atau foto.
+1. Publik dapat memeriksa keabsahan catatan sertifikat DPD melalui `/verifikasi` (berdasarkan nomor sertifikat) atau tautan acak `/verifikasi/{public_code}` (minimal 12 karakter acak yang dibuat secara kriptografis aman melalui `Str::random`).
+2. **Pencarian Melalui Nomor Sertifikat**:
+   - Menampilkan hasil keabsahan catatan teknis (Status, Skema Kompetensi, Lembaga Penerbit, Nomor Sertifikat, Tanggal Terbit, Masa Berlaku) **TANPA menampilkan nama pemegang**.
+   - Nama pemegang (tersamar) hanya dapat diverifikasi melalui tautan langsung kode unik `public_code` yang tertera pada sertifikat fisik/digital.
+3. **Penanganan Sertifikat Dicabut**:
+   - Tampilkan status **"Dicabut"** secara jelas dan tegas.
+   - **Tanpa menampilkan nama pemegang** dan **tanpa menampilkan alasan internal pencabutan** kepada publik.
+4. **Pencegahan Enumerasi & Brute-Force**:
    - Sertifikat dengan hasil `belum_kompeten` **tidak pernah tampil** di verifikasi publik.
-   - Pesan "tidak ditemukan" diseragamkan untuk nomor salah maupun tidak terdaftar guna mencegah *user/certificate enumeration*.
-   - Dilengkapi *rate limiting* ketat per IP dan tag meta `<meta name="robots" content="noindex, nofollow">` serta tidak didaftarkan dalam sitemap.
+   - Pesan "tidak ditemukan" diseragamkan untuk nomor salah maupun tidak terdaftar.
+   - Dilengkapi *rate limiting* ketat per IP (`throttle:15,1`) serta penundaan waktu (*small delay*) dan pembatasan lebih ketat setelah beberapa pencarian gagal berurutan dari satu IP.
+   - Menggunakan tag meta `<meta name="robots" content="noindex, nofollow">` serta tidak didaftarkan dalam sitemap.
 
 ---
 
