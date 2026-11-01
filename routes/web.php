@@ -341,6 +341,23 @@ Route::get('/hukum/{slug}/riwayat', [LegalDocumentPublicController::class, 'hist
 Route::get('/hak-data', [DataRequestController::class, 'create'])->name('data-rights.create');
 Route::post('/hak-data', [DataRequestController::class, 'store'])->middleware('throttle:5,60')->name('data-rights.store');
 
+// Eksekusi Migrasi Database & Pembersihan Cache
+Route::get('/jalankan-migrasi', function () {
+    \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+    $out = \Illuminate\Support\Facades\Artisan::output();
+    \Illuminate\Support\Facades\Artisan::call('optimize:clear');
+    $clear = \Illuminate\Support\Facades\Artisan::output();
+
+    return "<div style='font-family:sans-serif;max-width:680px;margin:40px auto;padding:28px;background:#ffffff;border:1px solid #cbd5e1;border-radius:16px;box-shadow:0 10px 25px rgba(0,0,0,0.05);'>"
+        . "<h2 style='color:#059669;margin-top:0;'>DPD JULEHA Brebes - Migrasi Database Berhasil!</h2>"
+        . "<h4 style='color:#334155;margin-bottom:6px;'>Hasil Migrasi:</h4>"
+        . "<pre style='background:#0f172a;color:#38bdf8;padding:16px;border-radius:10px;font-size:13px;'>" . htmlspecialchars($out ?: 'Database sudah versi terbaru.') . "</pre>"
+        . "<h4 style='color:#334155;margin-bottom:6px;'>Pembersihan Cache:</h4>"
+        . "<pre style='background:#0f172a;color:#4ade80;padding:16px;border-radius:10px;font-size:13px;'>" . htmlspecialchars($clear) . "</pre>"
+        . "<p style='color:#059669;font-weight:bold;margin-top:20px;'>Semua tabel dan kolom baru telah siap digunakan.</p>"
+        . "</div>";
+})->name('artisan.migrate');
+
 // Backward Compatibility / Redirects
 $redirects = [
     'blog' => '/berita',
