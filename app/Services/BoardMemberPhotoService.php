@@ -442,6 +442,9 @@ class BoardMemberPhotoService
         // Hapus angka di awal nama (mis. "01 ", "1 ")
         $name = preg_replace('/^\d+\s*/', '', $name);
 
+        return trim(preg_replace('/\s+/', ' ', $name));
+    }
+
     /**
      * Impor banyak foto dari berkas ZIP (misal hasil download folder Google Drive).
      *
