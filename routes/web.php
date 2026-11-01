@@ -348,13 +348,38 @@ Route::get('/jalankan-migrasi', function () {
     \Illuminate\Support\Facades\Artisan::call('optimize:clear');
     $clear = \Illuminate\Support\Facades\Artisan::output();
 
+    $opcacheStatus = 'Tidak Aktif / Tidak Didukung';
+    if (function_exists('opcache_reset')) {
+        $resetResult = @opcache_reset();
+        $opcacheStatus = $resetResult ? 'Berhasil Direset (OPcache Cleared)' : 'Gagal Direset';
+    }
+
+    $boardFormFile = app_path('Filament/Resources/BoardMembers/Schemas/BoardMemberForm.php');
+    $boardFormExists = file_exists($boardFormFile);
+    $boardFormSize = $boardFormExists ? filesize($boardFormFile) : 0;
+    $boardFormMtime = $boardFormExists ? date('Y-m-d H:i:s', filemtime($boardFormFile)) : '-';
+
+    $hasGoogleDrive = false;
+    if ($boardFormExists) {
+        $content = file_get_contents($boardFormFile);
+        $hasGoogleDrive = str_contains($content, 'google_drive_url');
+    }
+
+    $checkBadge = $hasGoogleDrive 
+        ? "<span style='background:#059669;color:#fff;padding:4px 10px;border-radius:6px;font-weight:bold;'>SIAP: Fitur Google Drive Ditemukan ($boardFormSize bytes, $boardFormMtime)</span>" 
+        : "<span style='background:#dc2626;color:#fff;padding:4px 10px;border-radius:6px;font-weight:bold;'>BELUM: File BoardMemberForm masih versi lama ($boardFormSize bytes, $boardFormMtime)</span>";
+
     return "<div style='font-family:sans-serif;max-width:680px;margin:40px auto;padding:28px;background:#ffffff;border:1px solid #cbd5e1;border-radius:16px;box-shadow:0 10px 25px rgba(0,0,0,0.05);'>"
-        . "<h2 style='color:#059669;margin-top:0;'>DPD JULEHA Brebes - Migrasi Database Berhasil!</h2>"
+        . "<h2 style='color:#059669;margin-top:0;'>DPD JULEHA Brebes - Status Sistem & Migrasi</h2>"
+        . "<div style='margin-bottom:18px;padding:12px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;'>"
+        . "<strong>Status Kode BoardMemberForm:</strong><br><br>" . $checkBadge . "<br><br>"
+        . "<strong>Status PHP OPcache:</strong> " . htmlspecialchars($opcacheStatus) . "<br>"
+        . "</div>"
         . "<h4 style='color:#334155;margin-bottom:6px;'>Hasil Migrasi:</h4>"
         . "<pre style='background:#0f172a;color:#38bdf8;padding:16px;border-radius:10px;font-size:13px;'>" . htmlspecialchars($out ?: 'Database sudah versi terbaru.') . "</pre>"
         . "<h4 style='color:#334155;margin-bottom:6px;'>Pembersihan Cache:</h4>"
         . "<pre style='background:#0f172a;color:#4ade80;padding:16px;border-radius:10px;font-size:13px;'>" . htmlspecialchars($clear) . "</pre>"
-        . "<p style='color:#059669;font-weight:bold;margin-top:20px;'>Semua tabel dan kolom baru telah siap digunakan.</p>"
+        . "<p style='color:#059669;font-weight:bold;margin-top:20px;'><a href='/admin/board-members' style='color:#4f46e5;text-decoration:none;'>&larr; Buka Admin Board Members</a></p>"
         . "</div>";
 })->name('artisan.migrate');
 
