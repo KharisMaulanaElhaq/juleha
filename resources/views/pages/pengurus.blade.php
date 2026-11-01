@@ -92,28 +92,41 @@
 
         <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             @forelse ($pimpinanHarian as $bph)
-                <div class="p-6 sm:p-8 rounded-3xl bg-white dark:bg-slate-800 border border-gray-200/80 dark:border-slate-700 shadow-soft text-center flex flex-col items-center justify-between transition-all hover:shadow-md" data-aos="fade-up" data-aos-delay="{{ $loop->index * 75 }}">
+                <div class="rounded-3xl bg-white dark:bg-slate-800 border border-gray-200/80 dark:border-slate-700 shadow-soft overflow-hidden flex flex-col justify-between transition-all hover:shadow-md hover:border-brand/30 dark:hover:border-brand-dark/30 group" data-aos="fade-up" data-aos-delay="{{ $loop->index * 75 }}">
                     <div class="w-full flex flex-col items-center">
-                        <!-- Foto atau Avatar Inisial Bersih Tanpa Gelar -->
-                        @if($bph->photo)
-                            <img src="{{ asset('storage/' . $bph->photo) }}"
-                                 alt="{{ $bph->name }}"
-                                 class="w-24 h-24 sm:w-28 sm:h-28 rounded-full object-cover border-4 border-brand/20 dark:border-brand-dark/30 shadow-md mb-4" />
-                        @else
-                            <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-brand/10 dark:bg-brand/20 border-4 border-brand/20 dark:border-brand-dark/30 flex items-center justify-center text-brand dark:text-brand-dark font-heading font-black text-2xl sm:text-3xl mb-4 shadow-inner">
-                                {{ $bph->initials }}
-                            </div>
-                        @endif
+                        <!-- Wadah Foto Rasio 4:5 Seragam -->
+                        <div class="w-full aspect-[4/5] bg-slate-100 dark:bg-slate-900 relative overflow-hidden flex items-center justify-center">
+                            @if($bph->hasPhoto())
+                                <img src="{{ $bph->photo_url }}"
+                                     srcset="{{ $bph->photo_srcset }}"
+                                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                                     alt="{{ $bph->name }}, {{ $bph->position }} DPD JULEHA Kabupaten Brebes"
+                                     width="400"
+                                     height="500"
+                                     loading="lazy"
+                                     class="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105" />
+                            @else
+                                <div class="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-brand/10 to-brand/20 dark:from-slate-800 dark:to-slate-900 text-brand dark:text-brand-dark p-6">
+                                    <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-white dark:bg-slate-800 shadow-md flex items-center justify-center font-heading font-black text-2xl sm:text-3xl border-2 border-brand/20 dark:border-brand-dark/30 mb-3">
+                                        {{ $bph->initials }}
+                                    </div>
+                                    <span class="text-[11px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider text-center">Foto Belum Tersedia</span>
+                                </div>
+                            @endif
+                        </div>
 
-                        <!-- Label Jabatan -->
-                        <span class="text-xs font-bold uppercase tracking-wider text-brand dark:text-brand-dark bg-brand/10 dark:bg-brand/20 px-3 py-1 rounded-full inline-block mb-3">
-                            {{ $bph->position }}
-                        </span>
+                        <!-- Info Jabatan & Nama -->
+                        <div class="p-5 sm:p-6 w-full text-center flex flex-col items-center flex-grow justify-center">
+                            <!-- Label Jabatan -->
+                            <span class="text-xs font-bold uppercase tracking-wider text-brand dark:text-brand-dark bg-brand/10 dark:bg-brand/20 px-3 py-1 rounded-full inline-block mb-2.5">
+                                {{ $bph->position }}
+                            </span>
 
-                        <!-- Nama Lengkap Beserta Gelar -->
-                        <h3 class="font-heading font-extrabold text-lg sm:text-xl text-slate-800 dark:text-white leading-snug">
-                            {{ $bph->name }}
-                        </h3>
+                            <!-- Nama Lengkap Beserta Gelar -->
+                            <h3 class="font-heading font-extrabold text-base sm:text-lg text-slate-800 dark:text-white leading-snug">
+                                {{ $bph->name }}
+                            </h3>
+                        </div>
                     </div>
                 </div>
             @empty
@@ -183,15 +196,34 @@
                         </div>
                     </button>
 
-                    <!-- Daftar Anggota Bernomor (Buka otomatis di desktop, accordion di HP) -->
-                    <div class="division-content border-t border-gray-100 dark:border-slate-700/80 p-5 sm:p-6 {{ $isFirst ? 'block' : 'hidden' }} md:!block">
+                    <!-- Daftar Anggota Bernomor & Berfoto (Buka otomatis di desktop, accordion di HP) -->
+                    <div class="division-content border-t border-gray-100 dark:border-slate-700/80 p-4 sm:p-5 {{ $isFirst ? 'block' : 'hidden' }} md:!block">
                         <ol class="space-y-3">
                             @foreach ($membersInDivision as $member)
-                                <li class="flex items-start gap-3 text-base text-slate-700 dark:text-slate-200 leading-relaxed">
-                                    <span class="w-6 h-6 rounded-full bg-brand/10 dark:bg-brand/20 text-brand dark:text-brand-dark text-xs font-extrabold flex items-center justify-center flex-shrink-0 mt-0.5">
+                                <li class="flex items-center gap-3 text-sm sm:text-base text-slate-700 dark:text-slate-200">
+                                    <span class="w-5 h-5 rounded-full bg-slate-100 dark:bg-slate-700/60 text-slate-500 dark:text-slate-400 text-[11px] font-bold flex items-center justify-center flex-shrink-0">
                                         {{ $loop->iteration }}
                                     </span>
-                                    <span class="font-medium text-slate-800 dark:text-slate-100">{{ $member->name }}</span>
+
+                                    <!-- Avatar Kecil ~40px -->
+                                    <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-full overflow-hidden flex-shrink-0 border-2 border-brand/20 dark:border-brand-dark/30 bg-slate-100 dark:bg-slate-700 flex items-center justify-center shadow-xs">
+                                        @if($member->hasPhoto())
+                                            <img src="{{ $member->thumb_url }}"
+                                                 alt="{{ $member->name }}, {{ $member->division }} DPD JULEHA Kabupaten Brebes"
+                                                 width="40"
+                                                 height="40"
+                                                 loading="lazy"
+                                                 class="w-full h-full object-cover object-top" />
+                                        @else
+                                            <span class="font-heading font-black text-xs text-brand dark:text-brand-dark">
+                                                {{ $member->initials }}
+                                            </span>
+                                        @endif
+                                    </div>
+
+                                    <span class="font-medium text-slate-800 dark:text-slate-100 leading-snug">
+                                        {{ $member->name }}
+                                    </span>
                                 </li>
                             @endforeach
                         </ol>

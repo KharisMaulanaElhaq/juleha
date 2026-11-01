@@ -27,6 +27,9 @@ class BoardMember extends Model
         'position',
         'category',
         'photo',
+        'photo_consent_at',
+        'photo_consent_note',
+        'photo_version',
         'bio',
         'sort_order',
         'is_active',
@@ -38,7 +41,38 @@ class BoardMember extends Model
         return [
             'sort_order' => 'integer',
             'is_active' => 'boolean',
+            'photo_consent_at' => 'date',
+            'photo_version' => 'integer',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::saving(function (BoardMember $member) {
+            if ($member->isInstitution()) {
+                if ($member->photo) {
+                    app(\App\Services\BoardMemberPhotoService::class)->deletePhotoFiles($member->photo);
+                }
+                $member->photo = null;
+                $member->photo_consent_at = null;
+                $member->photo_consent_note = null;
+            }
+        });
+
+        static::updating(function (BoardMember $member) {
+            if ($member->isDirty('photo')) {
+                $originalPhoto = $member->getOriginal('photo');
+                if (! empty($originalPhoto) && $originalPhoto !== $member->photo) {
+                    app(\App\Services\BoardMemberPhotoService::class)->deletePhotoFiles($originalPhoto);
+                }
+            }
+        });
+
+        static::deleting(function (BoardMember $member) {
+            if ($member->photo) {
+                app(\App\Services\BoardMemberPhotoService::class)->deletePhotoFiles($member->photo);
+            }
+        });
     }
 
     public function scopeActive($query)
@@ -59,6 +93,48 @@ class BoardMember extends Model
     public function scopeBidang($query)
     {
         return $query->where('group', self::GROUP_BIDANG)->orderBy('sort_order');
+    }
+
+    public function hasPhoto(): bool
+    {
+        return ! empty($this->photo);
+    }
+
+    public function getThumbPathAttribute(): ?string
+    {
+        return app(\App\Services\BoardMemberPhotoService::class)->getThumbPath($this->photo);
+    }
+
+    public function getPhotoUrlAttribute(): ?string
+    {
+        if (empty($this->photo)) {
+            return null;
+        }
+
+        $version = $this->photo_version ? '?v=' . $this->photo_version : '';
+
+        return asset('storage/' . $this->photo) . $version;
+    }
+
+    public function getThumbUrlAttribute(): ?string
+    {
+        if (empty($this->photo)) {
+            return null;
+        }
+
+        $thumb = $this->thumb_path;
+        $version = $this->photo_version ? '?v=' . $this->photo_version : '';
+
+        return asset('storage/' . ($thumb ?? $this->photo)) . $version;
+    }
+
+    public function getPhotoSrcsetAttribute(): ?string
+    {
+        if (empty($this->photo)) {
+            return null;
+        }
+
+        return "{$this->thumb_url} 400w, {$this->photo_url} 800w";
     }
 
     public function isInstitution(): bool

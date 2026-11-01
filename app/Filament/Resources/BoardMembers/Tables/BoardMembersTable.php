@@ -3,18 +3,22 @@
 namespace App\Filament\Resources\BoardMembers\Tables;
 
 use App\Models\BoardMember;
+use App\Services\BoardMemberPhotoService;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Notifications\Notification;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Grouping\Group;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class BoardMembersTable
 {
@@ -23,6 +27,12 @@ class BoardMembersTable
         return $table
             ->reorderable('sort_order')
             ->defaultSort('sort_order', 'asc')
+            ->description(function (): string {
+                $total = BoardMember::where('kind', BoardMember::KIND_PERSON)->where('is_active', true)->count();
+                $withPhoto = BoardMember::where('kind', BoardMember::KIND_PERSON)->where('is_active', true)->whereNotNull('photo')->count();
+
+                return "{$withPhoto} dari {$total} pengurus sudah berfoto";
+            })
             ->groups([
                 Group::make('group')
                     ->label('Kelompok Kepengurusan')
@@ -39,8 +49,26 @@ class BoardMembersTable
             ->columns([
                 ImageColumn::make('photo')
                     ->label('Foto')
-                    ->circular()
-                    ->defaultImageUrl(asset('assets/logo-juleha-brebes.png')),
+                    ->disk('public')
+                    ->getStateUsing(fn (BoardMember $record): ?string => $record->thumb_path ?? $record->photo)
+                    ->defaultImageUrl(asset('assets/logo-juleha-brebes.png'))
+                    ->height(45)
+                    ->width(36)
+                    ->extraImgAttributes(['class' => 'object-cover rounded-md aspect-[4/5]']),
+
+                TextColumn::make('photo_status')
+                    ->label('Status Foto')
+                    ->badge()
+                    ->state(fn (BoardMember $record): string => match (true) {
+                        $record->isInstitution() => 'Lembaga',
+                        $record->hasPhoto() => 'Ada Foto',
+                        default => 'Belum Ada',
+                    })
+                    ->color(fn (string $state): string => match ($state) {
+                        'Ada Foto' => 'success',
+                        'Belum Ada' => 'warning',
+                        default => 'gray',
+                    }),
 
                 TextColumn::make('name')
                     ->label('Nama Pengurus / Lembaga')
@@ -120,6 +148,20 @@ class BoardMembersTable
                             ->toArray();
                     }),
 
+                SelectFilter::make('photo_status')
+                    ->label('Filter Foto')
+                    ->options([
+                        'with_photo' => 'Sudah Berfoto',
+                        'without_photo' => 'Belum Ada Foto',
+                    ])
+                    ->query(function (Builder $query, array $data) {
+                        if (($data['value'] ?? null) === 'with_photo') {
+                            $query->where('kind', BoardMember::KIND_PERSON)->whereNotNull('photo');
+                        } elseif (($data['value'] ?? null) === 'without_photo') {
+                            $query->where('kind', BoardMember::KIND_PERSON)->whereNull('photo');
+                        }
+                    }),
+
                 SelectFilter::make('kind')
                     ->label('Filter Jenis')
                     ->options([
@@ -136,6 +178,69 @@ class BoardMembersTable
             ])
             ->recordActions([
                 ActionGroup::make([
+                    Action::make('quick_drive_photo')
+                        ->label('Pasang Foto Google Drive')
+                        ->icon('heroicon-o-camera')
+                        ->color('primary')
+                        ->visible(fn (BoardMember $record): bool => $record->kind === BoardMember::KIND_PERSON)
+                        ->form([
+                            \Filament\Forms\Components\TextInput::make('google_drive_url')
+                                ->label('Tautan Foto Google Drive')
+                                ->placeholder('https://drive.google.com/file/d/.../view')
+                                ->required()
+                                ->helperText('Pastikan akses file diatur ke "Siapa saja yang memiliki link".'),
+                            \Filament\Forms\Components\DatePicker::make('photo_consent_at')
+                                ->label('Tanggal Izin/Persetujuan')
+                                ->default(now()->toDateString())
+                                ->required(),
+                            \Filament\Forms\Components\TextInput::make('photo_consent_note')
+                                ->label('Catatan Izin')
+                                ->default('Diambil dari Google Drive ' . now()->format('d M Y')),
+                        ])
+                        ->action(function (BoardMember $record, array $data) {
+                            try {
+                                $service = app(BoardMemberPhotoService::class);
+                                $result = $service->processGoogleDriveUrl($data['google_drive_url'], $record->photo);
+                                $record->update([
+                                    'photo' => $result['main'],
+                                    'photo_version' => $result['version'],
+                                    'photo_consent_at' => $data['photo_consent_at'],
+                                    'photo_consent_note' => $data['photo_consent_note'],
+                                ]);
+                                Notification::make()
+                                    ->title("Foto {$record->name} berhasil dipasang")
+                                    ->success()
+                                    ->send();
+                            } catch (\Throwable $e) {
+                                Notification::make()
+                                    ->title('Gagal Memasang Foto')
+                                    ->body($e->getMessage())
+                                    ->danger()
+                                    ->send();
+                            }
+                        }),
+                    Action::make('delete_photo')
+                        ->label('Hapus Foto')
+                        ->icon('heroicon-o-trash')
+                        ->color('danger')
+                        ->visible(fn (BoardMember $record): bool => ! empty($record->photo))
+                        ->requiresConfirmation()
+                        ->modalHeading(fn (BoardMember $record) => "Hapus Foto {$record->name}?")
+                        ->modalDescription('Apakah Anda yakin ingin menghapus foto pengurus ini beserta seluruh berkas WebP turunannya?')
+                        ->modalSubmitActionLabel('Ya, Hapus Foto')
+                        ->action(function (BoardMember $record) {
+                            app(BoardMemberPhotoService::class)->deletePhotoFiles($record->photo);
+                            $record->update([
+                                'photo' => null,
+                                'photo_consent_at' => null,
+                                'photo_consent_note' => null,
+                                'photo_version' => time(),
+                            ]);
+                            Notification::make()
+                                ->title('Foto berhasil dihapus')
+                                ->success()
+                                ->send();
+                        }),
                     Action::make('view_page')
                         ->label('Lihat di Website')
                         ->icon('heroicon-o-arrow-top-right-on-square')

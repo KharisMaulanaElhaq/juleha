@@ -13,9 +13,16 @@ Dokumen ini memuat standar operasional prosedur (SOP) pengelolaan, perlindungan 
 | **Data Identitas & Sertifikasi** | NIK (Nomor Induk Kependudukan - 16 digit), Nama Lengkap sesuai KTP | Syarat mutlak penerbitan sertifikat pelatihan/Bimtek resmi DPD JULEHA Brebes dan kelengkapan berkas uji kompetensi sertifikasi BNSP. | Disimpan untuk validitas verifikasi keabsahan sertifikat alumni juleha. |
 | **Data Kontak & Domisili** | Nomor WhatsApp (format internasional `628...`), Kecamatan (17 kecamatan Kab. Brebes), Desa/Kelurahan, Asal Instansi/Lembaga/Masjid | Koordinasi pelaksanaan kegiatan lapangan, verifikasi domisili penugasan juru sembelih halal di Brebes, dan korespondensi admin. | Selama menjadi anggota/peserta aktif. |
 | **Data Keanggotaan/Profesi** | Status profesi (Calon Juleha, Juleha Aktif, Pengurus Masjid/DKM, Pekerja RPH) | Pemetaan kompetensi dan penempatan kelas bimtek/sertifikasi yang relevan. | Selama akun aktif. |
+| **Data Pengurus Organisasi** | Nama lengkap, jabatan/kedudukan, riwayat persetujuan foto, foto profil | Publikasi struktur kepengurusan resmi DPD JULEHA Brebes di halaman `/pengurus`. | Selama masa jabatan kepengurusan atau hingga ditarik persetujuannya. |
 | **Log Aktivitas & Teknis** | Waktu akses, IP Address, User-Agent, Catatan audit buka NIK | Keamanan sistem (audit trail pencegahan penyalahgunaan wewenang admin) dan kepatuhan hukum. | Minimal 12 bulan di tabel `audit_logs`. |
 
 > **Prinsip Minimalisasi Data**: Data tempat dan tanggal lahir tidak dikumpulkan pada profil standar. Jika di masa mendatang dibutuhkan untuk penerbitan sertifikat LSP/BNSP, penambahan kolom hanya dilakukan atas persetujuan pemilik data.
+
+### Perlindungan Privasi Foto Pengurus
+1. **Dasar Pemrosesan & Izin Publikasi**: Foto pengurus perorangan hanya diunggah dan dipublikasikan atas persetujuan yang bersangkutan (`photo_consent_at`, `photo_consent_note`). Entri lembaga (Pelindung & Pembina) hanya memakai lambang/ikon kelembagaan, bukan foto perorangan.
+2. **Pembersihan Metadata (EXIF/GPS Sanitization)**: Seluruh metadata EXIF, termasuk koordinat lokasi GPS, jenis kamera, dan waktu pemotretan, dibuang secara otomatis oleh server saat berkas diproses menjadi format WebP 4:5.
+3. **Penyimpanan Terisolasi**: Disk publik (`storage/board-members/`) hanya memuat berkas turunan WebP yang telah dibersihkan. Berkas asli bersih disimpan di disk privat (`storage/app/private/board-members-original/`) dan tidak dapat diakses langsung via web browser.
+4. **Hak Penarikan Persetujuan & Penghapusan**: Pengurus berhak memperbarui, mengganti, atau meminta penghapusan foto mereka sewaktu-waktu melalui sekretariat atau form `/hak-data`. Penghapusan foto di panel admin secara permanen menghapus berkas turunan publik dan cadangan privat.
 
 ---
 

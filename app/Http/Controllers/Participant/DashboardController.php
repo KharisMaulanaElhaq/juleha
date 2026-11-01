@@ -120,7 +120,7 @@ class DashboardController extends Controller
         if (! $profile || empty($profile->phone)) {
             $missingProfileFields[] = 'Nomor WhatsApp';
         }
-        if (! $profile || empty($profile->subdistrict)) {
+        if (! $profile || empty($profile->district)) {
             $missingProfileFields[] = 'Kecamatan / Domisili';
         }
 
