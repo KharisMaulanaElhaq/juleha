@@ -16,13 +16,45 @@ class EditBoardMember extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
+            Action::make('reset_crop')
+                ->label('Atur Ulang Pemotongan')
+                ->icon('heroicon-o-arrows-pointing-in')
+                ->color('gray')
+                ->visible(fn (): bool => ! empty($this->record->photo) && app(BoardMemberPhotoService::class)->hasOriginal($this->record->photo))
+                ->requiresConfirmation()
+                ->modalHeading('Atur Ulang Pemotongan Foto')
+                ->modalDescription('Sistem akan memotong ulang foto dari berkas asli yang tersimpan di disk privat ke rasio 4:5 (800x1000 dan 400x500 WebP). Lanjutkan?')
+                ->modalSubmitActionLabel('Ya, Potong Ulang')
+                ->action(function () {
+                    try {
+                        $service = app(BoardMemberPhotoService::class);
+                        $result = $service->reprocessFromOriginal($this->record->photo);
+                        $this->record->update([
+                            'photo' => $result['main'],
+                            'photo_version' => $result['version'],
+                        ]);
+                        $this->fillForm();
+                        Notification::make()
+                            ->title('Foto Berhasil Dipotong Ulang')
+                            ->body('Versi utama dan thumbnail WebP telah diperbarui dari berkas asli privat.')
+                            ->success()
+                            ->send();
+                    } catch (\Throwable $e) {
+                        Notification::make()
+                            ->title('Gagal Mengatur Ulang Pemotongan')
+                            ->body($e->getMessage())
+                            ->danger()
+                            ->send();
+                    }
+                }),
+
             Action::make('delete_photo')
                 ->label('Hapus Foto')
                 ->icon('heroicon-o-trash')
                 ->color('danger')
                 ->requiresConfirmation()
                 ->modalHeading('Hapus Foto Pengurus')
-                ->modalDescription('Apakah Anda yakin ingin menghapus foto pengurus ini beserta seluruh berkas WebP turunannya?')
+                ->modalDescription('Apakah Anda yakin ingin menghapus foto pengurus ini beserta seluruh berkas WebP turunannya dan cadangan privat?')
                 ->modalSubmitActionLabel('Ya, Hapus Foto')
                 ->visible(fn (): bool => ! empty($this->record->photo))
                 ->action(function () {
@@ -39,21 +71,14 @@ class EditBoardMember extends EditRecord
                         ->success()
                         ->send();
                 }),
+
             DeleteAction::make(),
         ];
     }
 
     protected function mutateFormDataBeforeSave(array $data): array
     {
-        if (! empty($data['google_drive_url']) && (empty($data['photo']) || $data['photo'] === $this->record->photo)) {
-            $service = app(BoardMemberPhotoService::class);
-            $result = $service->processGoogleDriveUrl($data['google_drive_url'], $this->record->photo);
-            $data['photo'] = $result['main'];
-            $data['photo_version'] = $result['version'];
-            if (empty($data['photo_consent_at'])) {
-                $data['photo_consent_at'] = now()->toDateString();
-            }
-        } elseif (empty($data['photo']) && ! empty($this->record->photo)) {
+        if (empty($data['photo']) && ! empty($this->record->photo)) {
             // Jika foto dihapus dari form FileUpload
             app(BoardMemberPhotoService::class)->deletePhotoFiles($this->record->photo);
             $data['photo_consent_at'] = null;

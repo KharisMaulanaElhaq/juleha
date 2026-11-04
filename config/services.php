@@ -41,4 +41,11 @@ return [
         'redirect' => env('GOOGLE_REDIRECT_URI') ? preg_replace('#(?<!:)//+#', '/', (string) env('GOOGLE_REDIRECT_URI')) : null,
     ],
 
+    // Client-side Google Picker for Board Member Photo Selection (Browser Only)
+    'google_picker' => [
+        'api_key' => env('GOOGLE_PICKER_API_KEY'),
+        'client_id' => env('GOOGLE_PICKER_CLIENT_ID'),
+        'app_id' => env('GOOGLE_PICKER_APP_ID'),
+    ],
+
 ];

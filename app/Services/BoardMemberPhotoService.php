@@ -12,15 +12,15 @@ class BoardMemberPhotoService
 {
     public const MAIN_WIDTH = 800;
 
-    public const MAIN_HEIGHT = 1000; // 4:5
+    public const MAIN_HEIGHT = 1000; // Rasio 4:5
 
     public const THUMB_WIDTH = 400;
 
-    public const THUMB_HEIGHT = 500; // 4:5
+    public const THUMB_HEIGHT = 500; // Rasio 4:5
 
-    public const MIN_SIDE = 400; // Sisi pendek minimal 400px
+    public const MIN_SIDE = 400; // Sisi terpendek minimal 400px
 
-    public const MAX_SIZE_BYTES = 5242880; // 5 MB
+    public const MAX_SIZE_BYTES = 8388608; // 8 MB
 
     /**
      * Proses berkas foto pengurus:
@@ -40,17 +40,21 @@ class BoardMemberPhotoService
     {
         $realPath = $file instanceof UploadedFile ? $file->getRealPath() : $file;
 
-        if (! file_exists($realPath) || ! is_readable($realPath)) {
+        $fp = @fopen($realPath, 'r');
+        if (! file_exists($realPath) || $fp === false) {
             throw ValidationException::withMessages([
                 'photo' => 'Berkas foto tidak ditemukan atau tidak dapat dibaca oleh server.',
             ]);
         }
+        if (is_resource($fp)) {
+            fclose($fp);
+        }
 
-        // 1. Validasi ukuran berkas maksimal 5 MB
+        // 1. Validasi ukuran berkas maksimal 8 MB
         $fileSize = filesize($realPath);
         if ($fileSize > self::MAX_SIZE_BYTES) {
             throw ValidationException::withMessages([
-                'photo' => 'Ukuran berkas foto terlalu besar (maksimal 5 MB).',
+                'photo' => 'Ukuran berkas foto terlalu besar (maksimal 8 MB).',
             ]);
         }
 
@@ -58,7 +62,7 @@ class BoardMemberPhotoService
         $imageInfo = @getimagesize($realPath);
         if ($imageInfo === false) {
             throw ValidationException::withMessages([
-                'photo' => 'Berkas yang diunggah bukan berkas gambar yang sah.',
+                'photo' => 'Berkas yang diunggah bukan berkas gambar yang sah atau rusak.',
             ]);
         }
 
@@ -84,7 +88,7 @@ class BoardMemberPhotoService
             ]);
         }
 
-        // 4. Koreksi orientasi EXIF (hanya berlaku untuk JPEG/TIFF)
+        // 4. Koreksi orientasi EXIF (hanya berlaku untuk JPEG)
         if (function_exists('exif_read_data') && ($mime === 'image/jpeg')) {
             $exif = @exif_read_data($realPath);
             if (! empty($exif['Orientation'])) {
@@ -109,7 +113,7 @@ class BoardMemberPhotoService
             ]);
         }
 
-        // 6. Simpan cadangan asli yang sudah bersih (tanpa EXIF) di disk privat
+        // 6. Simpan cadangan asli yang sudah bersih (seluruh EXIF terbuang) di disk privat
         $hashName = Str::random(40);
         $cleanOrigCanvas = imagecreatetruecolor($origWidth, $origHeight);
         $white = imagecolorallocate($cleanOrigCanvas, 255, 255, 255);
@@ -117,7 +121,7 @@ class BoardMemberPhotoService
         imagecopyresampled($cleanOrigCanvas, $image, 0, 0, 0, 0, $origWidth, $origHeight, $origWidth, $origHeight);
 
         $tempOrig = tempnam(sys_get_temp_dir(), 'orig_');
-        imagewebp($cleanOrigCanvas, $tempOrig, 90);
+        imagewebp($cleanOrigCanvas, $tempOrig, 92);
         imagedestroy($cleanOrigCanvas);
 
         $origRelativePath = "board-members-original/{$hashName}.webp";
@@ -139,7 +143,7 @@ class BoardMemberPhotoService
             $cropWidth = $origWidth;
             $cropHeight = (int) round($origWidth / 0.8);
             $srcX = 0;
-            // 15% dari selisih tinggi untuk menjaga area kepala/wajah tetap terlihat utuh
+            // 15% dari selisih tinggi untuk menjaga area kepala/wajah tetap terlihat utuh di tengah-atas
             $srcY = (int) max(0, min($origHeight - $cropHeight, round(($origHeight - $cropHeight) * 0.15)));
         } else {
             $cropWidth = $origWidth;
@@ -178,7 +182,6 @@ class BoardMemberPhotoService
         $whiteThumb = imagecolorallocate($thumbCanvas, 255, 255, 255);
         imagefill($thumbCanvas, 0, 0, $whiteThumb);
 
-        // Resample dari versi cropped asli untuk ketajaman terbaik
         imagecopyresampled(
             $thumbCanvas,
             $image,
@@ -216,6 +219,33 @@ class BoardMemberPhotoService
     }
 
     /**
+     * Proses ulang pemotongan dari cadangan asli di disk privat.
+     *
+     * @throws ValidationException
+     */
+    public function reprocessFromOriginal(string $photoPath): array
+    {
+        $originalPath = $this->getOriginalPath($photoPath);
+
+        if (! $originalPath || ! Storage::disk('private')->exists($originalPath)) {
+            throw ValidationException::withMessages([
+                'photo' => 'Berkas asli pada penyimpanan privat tidak ditemukan untuk diproses ulang.',
+            ]);
+        }
+
+        $tempPath = tempnam(sys_get_temp_dir(), 'recrop_');
+        file_put_contents($tempPath, Storage::disk('private')->get($originalPath));
+
+        try {
+            return $this->processAndStore($tempPath, $photoPath);
+        } finally {
+            if (file_exists($tempPath)) {
+                @unlink($tempPath);
+            }
+        }
+    }
+
+    /**
      * Hapus semua berkas turunan (main, thumb) dan cadangan privat.
      */
     public function deletePhotoFiles(?string $photoPath): void
@@ -224,29 +254,29 @@ class BoardMemberPhotoService
             return;
         }
 
-        // Hapus berkas utama di disk public
-        if (Storage::disk('public')->exists($photoPath)) {
-            Storage::disk('public')->delete($photoPath);
+        $publicDisk = Storage::disk('public');
+        $privateDisk = Storage::disk('private');
+
+        // Hapus file utama
+        if ($publicDisk->exists($photoPath)) {
+            $publicDisk->delete($photoPath);
         }
 
-        // Dapatkan nama berkas (mis: abcdef.webp)
-        $filename = basename($photoPath);
-
-        // Hapus thumbnail di disk public
-        $thumbPath = "board-members/thumb/{$filename}";
-        if (Storage::disk('public')->exists($thumbPath)) {
-            Storage::disk('public')->delete($thumbPath);
+        // Hapus thumbnail
+        $thumb = $this->getThumbPath($photoPath);
+        if ($thumb && $publicDisk->exists($thumb)) {
+            $publicDisk->delete($thumb);
         }
 
-        // Hapus cadangan asli di disk private
-        $originalPath = "board-members-original/{$filename}";
-        if (Storage::disk('private')->exists($originalPath)) {
-            Storage::disk('private')->delete($originalPath);
+        // Hapus cadangan privat
+        $original = $this->getOriginalPath($photoPath);
+        if ($original && $privateDisk->exists($original)) {
+            $privateDisk->delete($original);
         }
     }
 
     /**
-     * Dapatkan path thumbnail dari path foto utama.
+     * Dapatkan path berkas thumbnail dari path berkas utama.
      */
     public function getThumbPath(?string $photoPath): ?string
     {
@@ -254,13 +284,22 @@ class BoardMemberPhotoService
             return null;
         }
 
-        $filename = basename($photoPath);
+        if (str_contains($photoPath, 'board-members/main/')) {
+            return str_replace('board-members/main/', 'board-members/thumb/', $photoPath);
+        }
 
-        return "board-members/thumb/{$filename}";
+        $dir = dirname($photoPath);
+        $file = basename($photoPath);
+
+        if ($dir === '.' || empty($dir)) {
+            return "board-members/thumb/{$file}";
+        }
+
+        return "{$dir}/thumb/{$file}";
     }
 
     /**
-     * Dapatkan path cadangan asli privat dari path foto utama.
+     * Dapatkan path berkas asli dari disk privat.
      */
     public function getOriginalPath(?string $photoPath): ?string
     {
@@ -274,121 +313,13 @@ class BoardMemberPhotoService
     }
 
     /**
-     * Ekstrak File ID Google Drive dari berbagai format tautan.
+     * Periksa apakah berkas cadangan privat tersedia.
      */
-    public function extractGoogleDriveFileId(string $url): ?string
+    public function hasOriginal(?string $photoPath): bool
     {
-        $url = trim($url);
+        $original = $this->getOriginalPath($photoPath);
 
-        // Format 1: https://drive.google.com/file/d/{id}/view...
-        if (preg_match('#/file/d/([a-zA-Z0-9_-]+)#', $url, $matches)) {
-            return $matches[1];
-        }
-
-        // Format 2: https://drive.google.com/open?id={id} atau ?id={id}
-        if (preg_match('#[?&]id=([a-zA-Z0-9_-]+)#', $url, $matches)) {
-            return $matches[1];
-        }
-
-        // Format 3: https://lh3.googleusercontent.com/d/{id}
-        if (preg_match('#(?:googleusercontent\.com|drive\.google\.com)/d/([a-zA-Z0-9_-]+)#', $url, $matches)) {
-            return $matches[1];
-        }
-
-        // Format 4: ID langsung (panjang minimal 25 karakter)
-        if (preg_match('/^[a-zA-Z0-9_-]{25,}$/', $url)) {
-            return $url;
-        }
-
-        return null;
-    }
-
-    /**
-     * Unduh berkas foto dari Google Drive ke berkas sementara.
-     *
-     * @throws ValidationException
-     */
-    public function downloadFromGoogleDrive(string $urlOrId): string
-    {
-        $fileId = $this->extractGoogleDriveFileId($urlOrId);
-
-        if (! $fileId) {
-            throw ValidationException::withMessages([
-                'google_drive_url' => 'Format tautan Google Drive tidak valid. Gunakan tautan berbagi file (contoh: https://drive.google.com/file/d/.../view).',
-            ]);
-        }
-
-        if (str_contains($urlOrId, '/folders/')) {
-            throw ValidationException::withMessages([
-                'google_drive_url' => 'Tautan yang Anda masukkan adalah tautan Folder Google Drive, bukan tautan file foto. Buka foto yang diinginkan di Google Drive, klik Bagikan (Share) -> Salin Link file tersebut.',
-            ]);
-        }
-
-        // Coba unduh dari beberapa endpoint Google Drive publik
-        $endpoints = [
-            "https://lh3.googleusercontent.com/d/{$fileId}",
-            "https://drive.google.com/thumbnail?id={$fileId}&sz=w2500",
-            "https://drive.google.com/uc?export=download&id={$fileId}",
-        ];
-
-        $body = null;
-
-        foreach ($endpoints as $endpoint) {
-            try {
-                $response = \Illuminate\Support\Facades\Http::timeout(30)
-                    ->withOptions([
-                        'allow_redirects' => true,
-                        'verify' => false,
-                    ])
-                    ->withHeaders([
-                        'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                    ])
-                    ->get($endpoint);
-
-                if ($response->successful() && strlen($response->body()) > 200) {
-                    $contentType = $response->header('Content-Type') ?? '';
-                    $content = $response->body();
-
-                    if (str_starts_with($contentType, 'image/') || $this->isImageBytes($content)) {
-                        $body = $content;
-                        break;
-                    }
-                }
-            } catch (\Throwable) {
-                // Lanjut coba endpoint berikutnya
-            }
-        }
-
-        if (! $body) {
-            throw ValidationException::withMessages([
-                'google_drive_url' => 'Gagal mengunduh foto dari Google Drive. Pastikan: 1) File dibagikan dengan akses "Siapa saja yang memiliki link" (Anyone with the link), 2) File adalah gambar sungguhan (JPG/PNG/WebP), bukan dokumen/PDF.',
-            ]);
-        }
-
-        $tempPath = tempnam(sys_get_temp_dir(), 'gdrive_photo_');
-        file_put_contents($tempPath, $body);
-
-        return $tempPath;
-    }
-
-    /**
-     * Unduh dan langsung proses foto dari tautan Google Drive.
-     *
-     * @return array{main: string, thumb: string, original: string, version: int}
-     *
-     * @throws ValidationException
-     */
-    public function processGoogleDriveUrl(string $urlOrId, ?string $oldPhoto = null): array
-    {
-        $tempPath = $this->downloadFromGoogleDrive($urlOrId);
-
-        try {
-            return $this->processAndStore($tempPath, $oldPhoto);
-        } finally {
-            if (file_exists($tempPath)) {
-                @unlink($tempPath);
-            }
-        }
+        return $original && Storage::disk('private')->exists($original);
     }
 
     /**
@@ -433,7 +364,7 @@ class BoardMemberPhotoService
         ];
 
         foreach ($titles as $title) {
-            $name = preg_replace('/\b' . preg_quote($title, '/') . '\b/i', '', $name);
+            $name = preg_replace('/\b'.preg_quote($title, '/').'\b/i', '', $name);
         }
 
         // Hapus karakter non-alfanumerik
@@ -446,11 +377,11 @@ class BoardMemberPhotoService
     }
 
     /**
-     * Impor banyak foto dari berkas ZIP (misal hasil download folder Google Drive).
+     * Impor banyak foto dari berkas ZIP (unggah berkas lokal admin, BUKAN unduh dari URL).
      *
      * @return array{matched: array<string>, unmatched: array<string>, errors: array<string>}
      */
-    public function importPhotosFromZip(string $zipFilePath): array
+    public function importPhotosFromZip(string $zipFilePath, ?string $consentNote = null): array
     {
         if (! class_exists('ZipArchive')) {
             throw new \RuntimeException('Ekstensi PHP ZipArchive tidak aktif.');
@@ -461,7 +392,7 @@ class BoardMemberPhotoService
             throw new \RuntimeException('Gagal membuka berkas ZIP. Pastikan berkas ZIP tidak rusak.');
         }
 
-        $tempExtractDir = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'juleha_zip_' . Str::random(10);
+        $tempExtractDir = sys_get_temp_dir().DIRECTORY_SEPARATOR.'juleha_zip_'.Str::random(10);
         @mkdir($tempExtractDir, 0755, true);
         $zip->extractTo($tempExtractDir);
         $zip->close();
@@ -472,49 +403,47 @@ class BoardMemberPhotoService
 
         $boardMembers = BoardMember::where('kind', BoardMember::KIND_PERSON)->get();
 
-        $iterator = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($tempExtractDir));
+        $rii = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($tempExtractDir));
 
-        foreach ($iterator as $file) {
+        foreach ($rii as $file) {
             if ($file->isDir()) {
                 continue;
             }
 
             $filename = $file->getFilename();
+            if (str_starts_with($filename, '.') || str_starts_with($filename, '__MACOSX')) {
+                continue;
+            }
+
             $ext = strtolower($file->getExtension());
             if (! in_array($ext, ['jpg', 'jpeg', 'png', 'webp'], true)) {
                 continue;
             }
 
-            $normalizedFile = self::normalizeMemberName($filename);
-            if (empty($normalizedFile)) {
-                continue;
-            }
+            $baseName = pathinfo($filename, PATHINFO_FILENAME);
+            $normalizedName = self::normalizeMemberName($baseName);
 
-            $candidate = null;
+            $memberCandidate = null;
             foreach ($boardMembers as $member) {
-                $normalizedMember = self::normalizeMemberName($member->name);
-                if (empty($normalizedMember)) {
-                    continue;
-                }
-
-                if ($normalizedFile === $normalizedMember || str_contains($normalizedFile, $normalizedMember) || str_contains($normalizedMember, $normalizedFile)) {
-                    $candidate = $member;
+                $norm = self::normalizeMemberName($member->name);
+                if ($norm === $normalizedName || str_contains($norm, $normalizedName) || str_contains($normalizedName, $norm)) {
+                    $memberCandidate = $member;
                     break;
                 }
             }
 
-            if ($candidate) {
+            if ($memberCandidate) {
                 try {
-                    $result = $this->processAndStore($file->getPathname(), $candidate->photo);
-                    $candidate->update([
+                    $result = $this->processAndStore($file->getRealPath(), $memberCandidate->photo);
+                    $memberCandidate->update([
                         'photo' => $result['main'],
                         'photo_version' => $result['version'],
-                        'photo_consent_at' => $candidate->photo_consent_at ?? now()->toDateString(),
-                        'photo_consent_note' => $candidate->photo_consent_note ?? 'Diimpor dari berkas massal ' . now()->format('d M Y'),
+                        'photo_consent_at' => $memberCandidate->photo_consent_at ?? now()->toDateString(),
+                        'photo_consent_note' => $consentNote ?: $memberCandidate->photo_consent_note,
                     ]);
-                    $matched[] = "{$candidate->name} ({$filename})";
+                    $matched[] = $memberCandidate->name;
                 } catch (\Throwable $e) {
-                    $errors[] = "{$candidate->name}: " . $e->getMessage();
+                    $errors[] = "{$memberCandidate->name}: ".$e->getMessage();
                 }
             } else {
                 $unmatched[] = $filename;
@@ -522,69 +451,6 @@ class BoardMemberPhotoService
         }
 
         self::deleteDirectory($tempExtractDir);
-
-        return [
-            'matched' => $matched,
-            'unmatched' => $unmatched,
-            'errors' => $errors,
-        ];
-    }
-
-    /**
-     * Impor banyak foto dari daftar teks tautan Google Drive.
-     * Format per baris: "Nama Pengurus = URL" atau "Nama: URL" atau "URL"
-     *
-     * @return array{matched: array<string>, unmatched: array<string>, errors: array<string>}
-     */
-    public function importPhotosFromBatchDriveLinks(string $linksText): array
-    {
-        $lines = preg_split('/\r\n|\r|\n/', trim($linksText));
-        $matched = [];
-        $unmatched = [];
-        $errors = [];
-
-        $boardMembers = BoardMember::where('kind', BoardMember::KIND_PERSON)->get();
-
-        foreach ($lines as $line) {
-            $line = trim($line);
-            if (empty($line)) {
-                continue;
-            }
-
-            $memberCandidate = null;
-            $url = null;
-
-            if (preg_match('/^(.*?)\s*[:=|]\s*(https?:\/\/[^\s]+)$/i', $line, $matches)) {
-                $namePart = trim($matches[1]);
-                $url = trim($matches[2]);
-                $normalizedName = self::normalizeMemberName($namePart);
-
-                foreach ($boardMembers as $member) {
-                    $norm = self::normalizeMemberName($member->name);
-                    if ($norm === $normalizedName || str_contains($norm, $normalizedName) || str_contains($normalizedName, $norm)) {
-                        $memberCandidate = $member;
-                        break;
-                    }
-                }
-            }
-
-            if ($memberCandidate && $url) {
-                try {
-                    $result = $this->processGoogleDriveUrl($url, $memberCandidate->photo);
-                    $memberCandidate->update([
-                        'photo' => $result['main'],
-                        'photo_version' => $result['version'],
-                        'photo_consent_at' => $memberCandidate->photo_consent_at ?? now()->toDateString(),
-                        'photo_consent_note' => $memberCandidate->photo_consent_note ?? 'Diimpor dari tautan Google Drive ' . now()->format('d M Y'),
-                    ]);
-                    $matched[] = $memberCandidate->name;
-                } catch (\Throwable $e) {
-                    $errors[] = "{$memberCandidate->name}: " . $e->getMessage();
-                }
-            } else {
-                $unmatched[] = $line;
-            }
-        }
 
         return [
             'matched' => $matched,
@@ -604,11 +470,10 @@ class BoardMemberPhotoService
 
         $files = array_diff(scandir($dir) ?: [], ['.', '..']);
         foreach ($files as $file) {
-            $path = $dir . DIRECTORY_SEPARATOR . $file;
+            $path = $dir.DIRECTORY_SEPARATOR.$file;
             is_dir($path) ? self::deleteDirectory($path) : @unlink($path);
         }
 
         @rmdir($dir);
     }
 }
-

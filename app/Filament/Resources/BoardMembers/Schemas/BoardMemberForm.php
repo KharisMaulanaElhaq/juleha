@@ -4,7 +4,6 @@ namespace App\Filament\Resources\BoardMembers\Schemas;
 
 use App\Models\BoardMember;
 use App\Services\BoardMemberPhotoService;
-use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Radio;
@@ -12,8 +11,8 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
-use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\View;
 use Filament\Schemas\Schema;
 
 class BoardMemberForm
@@ -130,23 +129,30 @@ class BoardMemberForm
                             ->columnSpanFull(),
                     ]),
 
-                Section::make('Foto Profil & Integrasi Google Drive')
-                    ->description('Unggah berkas foto langsung atau tarik dari Google Drive (rasio 4:5 WebP, EXIF otomatis dibersihkan).')
+                Section::make('Foto Profil Pengurus')
+                    ->description('Pilih foto dari komputer atau Google Drive (rasio 4:5 format WebP, metadata EXIF otomatis dibersihkan).')
                     ->icon('heroicon-o-camera')
                     ->columns(2)
                     ->columnSpanFull()
                     ->visible(fn ($get) => $get('kind') !== BoardMember::KIND_INSTITUTION)
                     ->schema([
+                        View::make('filament.forms.components.board-member-photo-picker')
+                            ->columnSpanFull(),
+
                         FileUpload::make('photo')
-                            ->label('Foto Profil Pengurus (Rasio 4:5)')
+                            ->label('Unggah & Potong Foto (Rasio 4:5)')
                             ->image()
                             ->imageEditor()
                             ->imageCropAspectRatio('4:5')
+                            ->imageEditorAspectRatios(['4:5'])
+                            ->imageAspectRatio('4:5')
+                            ->automaticallyOpenImageEditorForAspectRatio()
                             ->disk('public')
                             ->directory('board-members/temp')
-                            ->maxSize(5120)
+                            ->maxSize(8192)
                             ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
-                            ->helperText('Khusus entri perorangan. Dipotong ke rasio 4:5 (800x1000 px). Seluruh metadata EXIF & koordinat lokasi otomatis dibuang.')
+                            ->extraAttributes(['class' => 'board-member-photo-upload'])
+                            ->helperText('Petunjuk: Geser dan perbesar sampai wajah berada di tengah atas (rasio 4:5). Nyaman di layar sentuh. Sisi terpendek minimal 400 px, batas ukuran 8 MB (atau batas PHP hosting jika lebih kecil).')
                             ->live()
                             ->saveUploadedFileUsing(function ($file, ?BoardMember $record) {
                                 $photoService = app(BoardMemberPhotoService::class);
@@ -156,52 +162,6 @@ class BoardMemberForm
                             })
                             ->columnSpanFull(),
 
-                        TextInput::make('google_drive_url')
-                            ->label('Atau Ambil Foto dari Google Drive')
-                            ->placeholder('Contoh: https://drive.google.com/file/d/1aBcDeFgHiJk.../view?usp=sharing')
-                            ->helperText('Tempel tautan file foto dari Google Drive (pastikan akses disetel "Siapa saja yang memiliki link"). Klik tombol "Tarik Foto" di samping kanan untuk langsung mengunduh dan memproses.')
-                            ->suffixAction(
-                                Action::make('fetchGoogleDrive')
-                                    ->label('Tarik Foto')
-                                    ->tooltip('Unduh dan pasang foto dari Google Drive sekarang')
-                                    ->icon('heroicon-o-arrow-down-tray')
-                                    ->color('primary')
-                                    ->action(function ($state, callable $set, ?BoardMember $record) {
-                                        if (empty($state)) {
-                                            Notification::make()
-                                                ->warning()
-                                                ->title('Tautan Masih Kosong')
-                                                ->body('Silakan tempel tautan file foto dari Google Drive terlebih dahulu.')
-                                                ->send();
-
-                                            return;
-                                        }
-
-                                        try {
-                                            $service = app(BoardMemberPhotoService::class);
-                                            $result = $service->processGoogleDriveUrl($state, $record?->photo);
-                                            $set('photo', $result['main']);
-                                            $set('photo_consent_at', now()->toDateString());
-                                            if (empty($record?->photo_consent_note)) {
-                                                $set('photo_consent_note', 'Diambil dari Google Drive DPD ' . now()->format('d M Y'));
-                                            }
-
-                                            Notification::make()
-                                                ->success()
-                                                ->title('Foto Berhasil Diunduh')
-                                                ->body('Foto dari Google Drive berhasil diproses ke format WebP 4:5 dan metadata EXIF telah dibuang.')
-                                                ->send();
-                                        } catch (\Throwable $e) {
-                                            Notification::make()
-                                                ->danger()
-                                                ->title('Gagal Mengunduh dari Google Drive')
-                                                ->body($e->getMessage())
-                                                ->send();
-                                        }
-                                    })
-                            )
-                            ->columnSpanFull(),
-
                         DatePicker::make('photo_consent_at')
                             ->label('Tanggal Persetujuan Foto')
                             ->default(now()->toDateString())
@@ -209,13 +169,17 @@ class BoardMemberForm
                             ->validationMessages([
                                 'required' => 'Tanggal persetujuan wajib diisi saat foto profil diunggah.',
                             ])
-                            ->helperText('Wajib diisi bila ada foto. Tanggal pengurus memberikan izin publikasi foto.')
+                            ->helperText('Isi dengan tanggal pengurus menyetujui publikasi foto.')
                             ->columnSpan(1),
 
                         TextInput::make('photo_consent_note')
                             ->label('Catatan Bukti Persetujuan')
-                            ->placeholder('Contoh: Diminta sendiri via WhatsApp 12 Okt 2026')
-                            ->helperText('Catatan administratif media persetujuan (WhatsApp, formulir, lisan).')
+                            ->placeholder('Diminta sendiri via WhatsApp, 28 Okt 2026')
+                            ->required(fn ($get) => filled($get('photo')))
+                            ->validationMessages([
+                                'required' => 'Catatan bukti persetujuan wajib diisi saat foto profil diunggah.',
+                            ])
+                            ->helperText('Wajib diisi bila ada foto. Catatan administratif media persetujuan (tidak terisi otomatis).')
                             ->maxLength(255)
                             ->columnSpan(1),
                     ]),
@@ -235,4 +199,3 @@ class BoardMemberForm
             ]);
     }
 }
-

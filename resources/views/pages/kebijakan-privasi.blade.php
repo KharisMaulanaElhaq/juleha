@@ -123,6 +123,31 @@
                 </div>
             </div>
 
+            <div>
+                <h2 class="font-heading font-bold text-xl sm:text-2xl text-slate-800 dark:text-white border-b border-slate-200 dark:border-slate-800 pb-2">
+                    7. Perlindungan Privasi Foto Pengurus Organisasi
+                </h2>
+                <div class="mt-3 space-y-3 text-slate-700 dark:text-slate-300 leading-relaxed text-sm sm:text-base">
+                    <p>
+                        Publikasi foto pengurus resmi pada halaman Struktur Pengurus (<a href="{{ route('pengurus') }}" class="text-primary-600 dark:text-primary-400 font-semibold hover:underline">/pengurus</a>) diatur dengan standar privasi ketat:
+                    </p>
+                    <ul class="list-disc pl-6 space-y-2">
+                        <li>
+                            <strong>Persetujuan Eksplisit:</strong> Foto hanya diunggah oleh administrator yang berhak atas persetujuan tertulis atau lisan dari pengurus yang bersangkutan, dengan pencatatan tanggal izin dan catatan bukti persetujuan administratif.
+                        </li>
+                        <li>
+                            <strong>Pembersihan Metadata (EXIF/GPS Sanitization):</strong> Seluruh metadata teknis perangkat pemotret, termasuk titik koordinat GPS lokasi, jenis kamera, dan cap waktu, dihapus secara permanen oleh sistem sebelum foto disimpan ke format WebP teroptimasi rasio 4:5.
+                        </li>
+                        <li>
+                            <strong>Integrasi Google Drive Sisi Klien (Tanpa Token di Server):</strong> Pemilihan foto via Google Drive berjalan sepenuhnya di peramban (browser) administrator menggunakan Google Identity Services dan Google Picker API. Token otorisasi hanya berada di memori peramban sementara, tidak pernah disimpan di database atau cookie, dan langsung dicabut (revoke) setelah foto berhasil dipilih. Server kami tidak membuat permintaan keluar berdasarkan input alamat pengguna, menjamin ketiadaan risiko kebocoran data.
+                        </li>
+                        <li>
+                            <strong>Penyimpanan Terisolasi & Hak Penghapusan:</strong> Berkas turunan foto disimpan di penyimpanan publik aplikasi, sementara cadangan bersih disimpan di disk privat terisolasi. Pengurus berhak meminta pembaruan atau penghapusan permanen fotonya sewaktu-waktu.
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
             <div class="bg-slate-50 dark:bg-slate-800/60 p-6 rounded-2xl border border-slate-200 dark:border-slate-700">
                 <h3 class="font-heading font-bold text-base text-slate-800 dark:text-white mb-2">
                     Kontak Pengaduan & Layanan Sekretariat

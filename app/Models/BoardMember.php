@@ -95,42 +95,84 @@ class BoardMember extends Model
         return $query->where('group', self::GROUP_BIDANG)->orderBy('sort_order');
     }
 
+    public function getResolvedPhotoPath(): ?string
+    {
+        if (empty($this->photo)) {
+            return null;
+        }
+
+        $publicDisk = \Illuminate\Support\Facades\Storage::disk('public');
+
+        if ($publicDisk->exists($this->photo)) {
+            return $this->photo;
+        }
+
+        if ($publicDisk->exists('board-members/main/' . $this->photo)) {
+            return 'board-members/main/' . $this->photo;
+        }
+
+        if ($publicDisk->exists('board-members/' . $this->photo)) {
+            return 'board-members/' . $this->photo;
+        }
+
+        return null;
+    }
+
+    public function photoExists(): bool
+    {
+        return $this->getResolvedPhotoPath() !== null;
+    }
+
+    public function isPhotoMissing(): bool
+    {
+        return ! empty($this->photo) && ! $this->photoExists();
+    }
+
     public function hasPhoto(): bool
     {
-        return ! empty($this->photo);
+        return ! empty($this->photo) && $this->photoExists();
     }
 
     public function getThumbPathAttribute(): ?string
     {
-        return app(\App\Services\BoardMemberPhotoService::class)->getThumbPath($this->photo);
+        $resolved = $this->getResolvedPhotoPath();
+        if (! $resolved) {
+            return null;
+        }
+
+        return app(\App\Services\BoardMemberPhotoService::class)->getThumbPath($resolved);
     }
 
     public function getPhotoUrlAttribute(): ?string
     {
-        if (empty($this->photo)) {
+        $resolved = $this->getResolvedPhotoPath();
+        if (! $resolved) {
             return null;
         }
 
         $version = $this->photo_version ? '?v=' . $this->photo_version : '';
 
-        return asset('storage/' . $this->photo) . $version;
+        return asset('storage/' . $resolved) . $version;
     }
 
     public function getThumbUrlAttribute(): ?string
     {
-        if (empty($this->photo)) {
+        $resolved = $this->getResolvedPhotoPath();
+        if (! $resolved) {
             return null;
         }
 
         $thumb = $this->thumb_path;
+        $publicDisk = \Illuminate\Support\Facades\Storage::disk('public');
+        $actualPath = ($thumb && $publicDisk->exists($thumb)) ? $thumb : $resolved;
         $version = $this->photo_version ? '?v=' . $this->photo_version : '';
 
-        return asset('storage/' . ($thumb ?? $this->photo)) . $version;
+        return asset('storage/' . $actualPath) . $version;
     }
 
     public function getPhotoSrcsetAttribute(): ?string
     {
-        if (empty($this->photo)) {
+        if (! $this->hasPhoto()) {
             return null;
         }
 

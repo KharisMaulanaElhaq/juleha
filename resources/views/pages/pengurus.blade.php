@@ -104,7 +104,14 @@
                                      width="400"
                                      height="500"
                                      loading="lazy"
+                                     onerror="this.style.display='none'; if(this.nextElementSibling){ this.nextElementSibling.style.display='flex'; }"
                                      class="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105" />
+                                <div style="display:none;" class="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-brand/10 to-brand/20 dark:from-slate-800 dark:to-slate-900 text-brand dark:text-brand-dark p-6">
+                                    <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-white dark:bg-slate-800 shadow-md flex items-center justify-center font-heading font-black text-2xl sm:text-3xl border-2 border-brand/20 dark:border-brand-dark/30 mb-3">
+                                        {{ $bph->initials }}
+                                    </div>
+                                    <span class="text-[11px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider text-center">Foto Belum Tersedia</span>
+                                </div>
                             @else
                                 <div class="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-brand/10 to-brand/20 dark:from-slate-800 dark:to-slate-900 text-brand dark:text-brand-dark p-6">
                                     <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-white dark:bg-slate-800 shadow-md flex items-center justify-center font-heading font-black text-2xl sm:text-3xl border-2 border-brand/20 dark:border-brand-dark/30 mb-3">
@@ -213,7 +220,11 @@
                                                  width="40"
                                                  height="40"
                                                  loading="lazy"
+                                                 onerror="this.style.display='none'; if(this.nextElementSibling){ this.nextElementSibling.style.display='inline'; }"
                                                  class="w-full h-full object-cover object-top" />
+                                            <span style="display:none;" class="font-heading font-black text-xs text-brand dark:text-brand-dark">
+                                                {{ $member->initials }}
+                                            </span>
                                         @else
                                             <span class="font-heading font-black text-xs text-brand dark:text-brand-dark">
                                                 {{ $member->initials }}

@@ -362,11 +362,11 @@ Route::get('/jalankan-migrasi', function () {
     $hasGoogleDrive = false;
     if ($boardFormExists) {
         $content = file_get_contents($boardFormFile);
-        $hasGoogleDrive = str_contains($content, 'google_drive_url');
+        $hasGoogleDrive = str_contains($content, 'board-member-photo-picker');
     }
 
     $checkBadge = $hasGoogleDrive 
-        ? "<span style='background:#059669;color:#fff;padding:4px 10px;border-radius:6px;font-weight:bold;'>SIAP: Fitur Google Drive Ditemukan ($boardFormSize bytes, $boardFormMtime)</span>" 
+        ? "<span style='background:#059669;color:#fff;padding:4px 10px;border-radius:6px;font-weight:bold;'>SIAP: Fitur Google Picker & Dua Tombol Ditemukan ($boardFormSize bytes, $boardFormMtime)</span>" 
         : "<span style='background:#dc2626;color:#fff;padding:4px 10px;border-radius:6px;font-weight:bold;'>BELUM: File BoardMemberForm masih versi lama ($boardFormSize bytes, $boardFormMtime)</span>";
 
     return "<div style='font-family:sans-serif;max-width:680px;margin:40px auto;padding:28px;background:#ffffff;border:1px solid #cbd5e1;border-radius:16px;box-shadow:0 10px 25px rgba(0,0,0,0.05);'>"

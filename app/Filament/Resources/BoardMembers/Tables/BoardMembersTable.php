@@ -61,14 +61,26 @@ class BoardMembersTable
                     ->badge()
                     ->state(fn (BoardMember $record): string => match (true) {
                         $record->isInstitution() => 'Lembaga',
-                        $record->hasPhoto() => 'Ada Foto',
-                        default => 'Belum Ada',
+                        $record->isPhotoMissing() => 'File Tidak Ditemukan',
+                        $record->hasPhoto() => 'Foto Siap (4:5)',
+                        default => 'Belum Ada Foto',
+                    })
+                    ->icon(fn (string $state): ?string => match ($state) {
+                        'File Tidak Ditemukan' => 'heroicon-o-exclamation-triangle',
+                        'Foto Siap (4:5)' => 'heroicon-o-check-circle',
+                        'Belum Ada Foto' => 'heroicon-o-camera',
+                        default => null,
                     })
                     ->color(fn (string $state): string => match ($state) {
-                        'Ada Foto' => 'success',
-                        'Belum Ada' => 'warning',
+                        'Foto Siap (4:5)' => 'success',
+                        'File Tidak Ditemukan' => 'danger',
+                        'Belum Ada Foto' => 'warning',
                         default => 'gray',
-                    }),
+                    })
+                    ->tooltip(fn (BoardMember $record): ?string => $record->isPhotoMissing()
+                        ? 'File foto tercatat di database tetapi tidak ditemukan di penyimpanan server. Silakan unggah ulang foto pengurus ini.'
+                        : null
+                    ),
 
                 TextColumn::make('name')
                     ->label('Nama Pengurus / Lembaga')
@@ -149,14 +161,29 @@ class BoardMembersTable
                     }),
 
                 SelectFilter::make('photo_status')
-                    ->label('Filter Foto')
+                    ->label('Filter Status Foto')
                     ->options([
-                        'with_photo' => 'Sudah Berfoto',
+                        'valid' => 'Foto Valid (Ada di Penyimpanan)',
+                        'missing' => 'File Hilang / Rusak (Perlu Diperbaiki)',
                         'without_photo' => 'Belum Ada Foto',
                     ])
                     ->query(function (Builder $query, array $data) {
-                        if (($data['value'] ?? null) === 'with_photo') {
-                            $query->where('kind', BoardMember::KIND_PERSON)->whereNotNull('photo');
+                        if (($data['value'] ?? null) === 'valid') {
+                            $validIds = BoardMember::where('kind', BoardMember::KIND_PERSON)
+                                ->whereNotNull('photo')
+                                ->get()
+                                ->filter(fn ($m) => $m->photoExists())
+                                ->pluck('id')
+                                ->toArray();
+                            $query->whereIn('id', $validIds);
+                        } elseif (($data['value'] ?? null) === 'missing') {
+                            $missingIds = BoardMember::where('kind', BoardMember::KIND_PERSON)
+                                ->whereNotNull('photo')
+                                ->get()
+                                ->filter(fn ($m) => $m->isPhotoMissing())
+                                ->pluck('id')
+                                ->toArray();
+                            $query->whereIn('id', $missingIds);
                         } elseif (($data['value'] ?? null) === 'without_photo') {
                             $query->where('kind', BoardMember::KIND_PERSON)->whereNull('photo');
                         }
@@ -178,42 +205,30 @@ class BoardMembersTable
             ])
             ->recordActions([
                 ActionGroup::make([
-                    Action::make('quick_drive_photo')
-                        ->label('Pasang Foto Google Drive')
-                        ->icon('heroicon-o-camera')
-                        ->color('primary')
-                        ->visible(fn (BoardMember $record): bool => $record->kind === BoardMember::KIND_PERSON)
-                        ->form([
-                            \Filament\Forms\Components\TextInput::make('google_drive_url')
-                                ->label('Tautan Foto Google Drive')
-                                ->placeholder('https://drive.google.com/file/d/.../view')
-                                ->required()
-                                ->helperText('Pastikan akses file diatur ke "Siapa saja yang memiliki link".'),
-                            \Filament\Forms\Components\DatePicker::make('photo_consent_at')
-                                ->label('Tanggal Izin/Persetujuan')
-                                ->default(now()->toDateString())
-                                ->required(),
-                            \Filament\Forms\Components\TextInput::make('photo_consent_note')
-                                ->label('Catatan Izin')
-                                ->default('Diambil dari Google Drive ' . now()->format('d M Y')),
-                        ])
-                        ->action(function (BoardMember $record, array $data) {
+                    Action::make('reprocess_crop')
+                        ->label('Atur Ulang Pemotongan')
+                        ->icon('heroicon-o-scissors')
+                        ->color('info')
+                        ->visible(fn (BoardMember $record): bool => ! empty($record->photo) && app(BoardMemberPhotoService::class)->hasOriginal($record->photo))
+                        ->requiresConfirmation()
+                        ->modalHeading('Atur Ulang Pemotongan Foto')
+                        ->modalDescription('Proses ulang foto pengurus ke rasio 4:5 menggunakan berkas asli bersih di penyimpanan privat?')
+                        ->modalSubmitActionLabel('Ya, Proses Ulang')
+                        ->action(function (BoardMember $record) {
                             try {
                                 $service = app(BoardMemberPhotoService::class);
-                                $result = $service->processGoogleDriveUrl($data['google_drive_url'], $record->photo);
+                                $result = $service->reprocessFromOriginal($record->photo);
                                 $record->update([
                                     'photo' => $result['main'],
                                     'photo_version' => $result['version'],
-                                    'photo_consent_at' => $data['photo_consent_at'],
-                                    'photo_consent_note' => $data['photo_consent_note'],
                                 ]);
                                 Notification::make()
-                                    ->title("Foto {$record->name} berhasil dipasang")
+                                    ->title('Pemotongan foto berhasil diatur ulang')
                                     ->success()
                                     ->send();
                             } catch (\Throwable $e) {
                                 Notification::make()
-                                    ->title('Gagal Memasang Foto')
+                                    ->title('Gagal mengatur ulang pemotongan')
                                     ->body($e->getMessage())
                                     ->danger()
                                     ->send();
