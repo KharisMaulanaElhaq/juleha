@@ -345,6 +345,15 @@ Route::post('/hak-data', [DataRequestController::class, 'store'])->middleware('t
 Route::get('/jalankan-migrasi', function () {
     \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
     $out = \Illuminate\Support\Facades\Artisan::output();
+
+    $storageLink = 'Lewati';
+    try {
+        \Illuminate\Support\Facades\Artisan::call('storage:link');
+        $storageLink = \Illuminate\Support\Facades\Artisan::output();
+    } catch (\Throwable $e) {
+        $storageLink = 'Galat: ' . $e->getMessage();
+    }
+
     \Illuminate\Support\Facades\Artisan::call('optimize:clear');
     $clear = \Illuminate\Support\Facades\Artisan::output();
 
@@ -374,6 +383,7 @@ Route::get('/jalankan-migrasi', function () {
         . "<div style='margin-bottom:18px;padding:12px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;'>"
         . "<strong>Status Kode BoardMemberForm:</strong><br><br>" . $checkBadge . "<br><br>"
         . "<strong>Status PHP OPcache:</strong> " . htmlspecialchars($opcacheStatus) . "<br>"
+        . "<strong>Tautan Penyimpanan (Storage Link):</strong> " . htmlspecialchars($storageLink) . "<br>"
         . "</div>"
         . "<h4 style='color:#334155;margin-bottom:6px;'>Hasil Migrasi:</h4>"
         . "<pre style='background:#0f172a;color:#38bdf8;padding:16px;border-radius:10px;font-size:13px;'>" . htmlspecialchars($out ?: 'Database sudah versi terbaru.') . "</pre>"
@@ -382,6 +392,26 @@ Route::get('/jalankan-migrasi', function () {
         . "<p style='color:#059669;font-weight:bold;margin-top:20px;'><a href='/admin/board-members' style='color:#4f46e5;text-decoration:none;'>&larr; Buka Admin Board Members</a></p>"
         . "</div>";
 })->name('artisan.migrate');
+
+// Melayani berkas foto pengurus publik jika symlink public/storage belum ada di server cPanel
+Route::get('storage/board-members/{path}', function (string $path) {
+    if (str_contains($path, '..') || str_starts_with($path, '/') || str_starts_with($path, '\\')) {
+        abort(404);
+    }
+
+    $disk = \Illuminate\Support\Facades\Storage::disk('public');
+    $fullPath = 'board-members/' . $path;
+    if (! $disk->exists($fullPath)) {
+        abort(404);
+    }
+
+    $mime = $disk->mimeType($fullPath) ?: 'image/webp';
+
+    return response($disk->get($fullPath), 200, [
+        'Content-Type' => $mime,
+        'Cache-Control' => 'public, max-age=31536000, immutable',
+    ]);
+})->where('path', '.*')->name('storage.board_members_fallback');
 
 // Backward Compatibility / Redirects
 $redirects = [

@@ -383,4 +383,22 @@ class BoardMemberPhotoTest extends TestCase
         $this->assertFalse($policy->create($participant));
         $this->assertFalse($policy->update($participant, new BoardMember));
     }
+
+    public function test_storage_fallback_route_serves_files_when_symlink_missing(): void
+    {
+        Storage::fake('public');
+        Storage::disk('public')->put('board-members/main/test-photo.webp', 'fake-image-binary-data');
+
+        $response = $this->get('/storage/board-members/main/test-photo.webp');
+        $response->assertStatus(200);
+        $this->assertSame('fake-image-binary-data', $response->getContent());
+
+        // File tidak ada -> 404
+        $notFound = $this->get('/storage/board-members/main/non-existent.webp');
+        $notFound->assertStatus(404);
+
+        // Path traversal -> 404
+        $traversal = $this->get('/storage/board-members/../../.env');
+        $traversal->assertStatus(404);
+    }
 }
