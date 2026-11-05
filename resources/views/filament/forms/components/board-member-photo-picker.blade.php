@@ -13,53 +13,47 @@
         appId: {{ \Illuminate\Support\Js::from($appId) }},
         isConfigured: {{ \Illuminate\Support\Js::from($isGoogleDriveConfigured) }}
     })"
-    class="w-full space-y-3"
+    class="w-full"
+    style="margin-bottom: 0.75rem;"
 >
-    <!-- Baris Tombol Pemilihan Foto Sejajar -->
-    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3">
+    <!-- Baris Tombol Pemilihan Foto Sejajar (Filament Native Buttons) -->
+    <div style="display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center;">
         <!-- Tombol 1: Pilih dari Komputer -->
-        <button
+        <x-filament::button
             type="button"
+            color="gray"
+            icon="heroicon-m-computer-desktop"
             x-on:click="openComputerPicker()"
-            class="inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-lg shadow-sm border transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 focus:ring-primary-500"
         >
-            <svg class="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 17.25v1.007a3 3 0 0 1-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0 1 15 18.257V17.25m6-12V15a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 15V5.25m18 0A2.25 2.25 0 0 0 18.75 3H5.25A2.25 2.25 0 0 0 3 5.25m18 0H3" />
-            </svg>
-            <span>Pilih dari Komputer</span>
-        </button>
+            Pilih dari Komputer
+        </x-filament::button>
 
         @if ($isGoogleDriveConfigured)
             <!-- Tombol 2: Pilih dari Google Drive -->
-            <button
+            <x-filament::button
                 type="button"
+                color="success"
                 x-on:click="pickFromGoogleDrive()"
-                :disabled="isLoading"
-                class="inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-lg shadow-sm border transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 bg-emerald-600 text-white border-transparent hover:bg-emerald-700 focus:ring-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                ::disabled="isLoading"
             >
-                <template x-if="!isLoading">
-                    <!-- Google Drive Icon -->
-                    <svg class="w-5 h-5" viewBox="0 0 87.3 78" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                        <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8H0c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"/>
-                        <path d="M43.65 25 29.9 1.2c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44C.4 49.9 0 51.45 0 53h27.45z" fill="#00ac47"/>
-                        <path d="M73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5H59.85l6.1 10.55z" fill="#ea4335"/>
-                        <path d="M43.65 25 57.4 1.2C56.05.4 54.5 0 52.95 0H34.35c-1.55 0-3.1.4-4.45 1.2z" fill="#00832d"/>
-                        <path d="M59.85 53H27.45L13.75 76.8c1.35.8 2.9 1.2 4.45 1.2h50.9c1.55 0 3.1-.4 4.45-1.2z" fill="#2684fc"/>
-                        <path d="M73.4 26.5 60.7 4.5C59.9 3.1 58.75 2 57.4 1.2L43.65 25l16.2 28h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00"/>
-                    </svg>
-                </template>
-                <template x-if="isLoading">
-                    <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
-                    </svg>
-                </template>
+                <x-slot name="icon">
+                    <template x-if="!isLoading">
+                        <svg width="18" height="18" style="width: 18px; height: 18px; min-width: 18px; min-height: 18px; display: inline-block; vertical-align: middle;" viewBox="0 0 87.3 78" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8H0c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"/>
+                            <path d="M43.65 25 29.9 1.2c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44C.4 49.9 0 51.45 0 53h27.45z" fill="#00ac47"/>
+                            <path d="M73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5H59.85l6.1 10.55z" fill="#ea4335"/>
+                            <path d="M43.65 25 57.4 1.2C56.05.4 54.5 0 52.95 0H34.35c-1.55 0-3.1.4-4.45 1.2z" fill="#00832d"/>
+                            <path d="M59.85 53H27.45L13.75 76.8c1.35.8 2.9 1.2 4.45 1.2h50.9c1.55 0 3.1-.4 4.45-1.2z" fill="#2684fc"/>
+                            <path d="M73.4 26.5 60.7 4.5C59.9 3.1 58.75 2 57.4 1.2L43.65 25l16.2 28h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00"/>
+                        </svg>
+                    </template>
+                </x-slot>
                 <span x-text="isLoading ? statusMessage : 'Pilih dari Google Drive'"></span>
-            </button>
+            </x-filament::button>
         @else
             <!-- Keterangan jika Google Drive belum dikonfigurasi -->
-            <div class="flex items-center gap-2 text-xs text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 rounded-lg px-3 py-2">
-                <svg class="w-4 h-4 shrink-0 text-amber-600 dark:text-amber-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <div style="display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.8125rem; color: #b45309; background-color: #fef3c7; border: 1px solid #fde68a; border-radius: 0.5rem; padding: 0.5rem 0.75rem;">
+                <svg width="16" height="16" style="width: 16px; height: 16px; flex-shrink: 0;" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
                 </svg>
                 <span>Fitur Google Drive belum dikonfigurasi, gunakan Pilih dari komputer.</span>
@@ -71,33 +65,35 @@
     <div
         x-show="errorMessage"
         x-cloak
-        class="p-3.5 rounded-lg border border-red-200 dark:border-red-800/60 bg-red-50 dark:bg-red-950/40 text-red-800 dark:text-red-300 text-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm"
+        style="margin-top: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; border: 1px solid #fecaca; background-color: #fef2f2; color: #991b1b; font-size: 0.875rem; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.75rem;"
         role="alert"
     >
-        <div class="flex items-start gap-2.5">
-            <svg class="w-5 h-5 shrink-0 text-red-500 mt-0.5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <div style="display: flex; align-items: flex-start; gap: 0.625rem;">
+            <svg width="20" height="20" style="width: 20px; height: 20px; flex-shrink: 0; color: #ef4444; margin-top: 2px;" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
             </svg>
             <div>
-                <span class="font-medium" x-text="errorMessage"></span>
-                <p class="text-xs text-red-600 dark:text-red-400 mt-0.5" x-show="errorDetail" x-text="errorDetail"></p>
+                <span style="font-weight: 600;" x-text="errorMessage"></span>
+                <p style="font-size: 0.75rem; color: #dc2626; margin-top: 2px;" x-show="errorDetail" x-text="errorDetail"></p>
             </div>
         </div>
-        <div class="flex items-center gap-2 self-end sm:self-auto shrink-0">
-            <button
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <x-filament::button
                 type="button"
+                color="danger"
+                size="xs"
                 x-on:click="retryAction()"
-                class="px-2.5 py-1 text-xs font-semibold rounded bg-red-600 hover:bg-red-700 text-white transition-colors shadow-xs"
             >
                 Coba Lagi
-            </button>
-            <button
+            </x-filament::button>
+            <x-filament::button
                 type="button"
+                color="gray"
+                size="xs"
                 x-on:click="errorMessage = null; errorDetail = null"
-                class="px-2 py-1 text-xs font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
             >
                 Tutup
-            </button>
+            </x-filament::button>
         </div>
     </div>
 </div>
@@ -121,8 +117,14 @@ function boardMemberPhotoPicker(config) {
             this.errorDetail = null;
 
             // Cari input file di container photo upload
-            const inputEl = document.querySelector('.board-member-photo-upload input[type="file"]');
+            const uploadWrapper = document.querySelector('.board-member-photo-upload');
+            const inputEl = uploadWrapper ? uploadWrapper.querySelector('input[type="file"]') : null;
             if (inputEl) {
+                // Bersihkan berkas lama jika ada agar pengguna leluasa memilih foto baru
+                let pond = window.FilePond ? window.FilePond.find(inputEl) : null;
+                if (pond && typeof pond.removeFiles === 'function' && pond.getFiles().length > 0) {
+                    pond.removeFiles();
+                }
                 inputEl.click();
             } else {
                 this.showError('Komponen upload foto belum siap.', 'Silakan muat ulang halaman.');
