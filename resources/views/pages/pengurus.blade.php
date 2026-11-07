@@ -93,37 +93,38 @@
         <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             @forelse ($pimpinanHarian as $bph)
                 <div class="rounded-3xl bg-white dark:bg-slate-800 border border-gray-200/80 dark:border-slate-700 shadow-soft overflow-hidden flex flex-col justify-between transition-all hover:shadow-md hover:border-brand/30 dark:hover:border-brand-dark/30 group" data-aos="fade-up" data-aos-delay="{{ $loop->index * 75 }}">
-                    <div class="w-full flex flex-col items-center">
-                        <!-- Wadah Foto Rasio 4:5 Seragam -->
-                        <div class="w-full aspect-[4/5] bg-slate-100 dark:bg-slate-900 relative overflow-hidden flex items-center justify-center">
-                            @if($bph->hasPhoto())
-                                <img src="{{ $bph->photo_url }}"
-                                     srcset="{{ $bph->photo_srcset }}"
-                                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                                     alt="{{ $bph->name }}, {{ $bph->position }} DPD JULEHA Kabupaten Brebes"
-                                     width="400"
-                                     height="500"
-                                     loading="lazy"
-                                     onerror="this.style.display='none'; if(this.nextElementSibling){ this.nextElementSibling.style.display='flex'; }"
-                                     class="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105" />
-                                <div style="display:none;" class="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-brand/10 to-brand/20 dark:from-slate-800 dark:to-slate-900 text-brand dark:text-brand-dark p-6">
-                                    <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-white dark:bg-slate-800 shadow-md flex items-center justify-center font-heading font-black text-2xl sm:text-3xl border-2 border-brand/20 dark:border-brand-dark/30 mb-3">
+                    <div class="w-full flex flex-col items-center p-6 sm:p-7">
+                        <!-- Wadah Foto Profil Instagram-Style (Bulat Proporsional) -->
+                        <div class="relative mb-5 flex flex-col items-center">
+                            <div class="w-28 h-28 sm:w-32 sm:h-32 rounded-full overflow-hidden border-4 border-brand/20 dark:border-brand-dark/30 bg-slate-100 dark:bg-slate-700 shadow-md flex items-center justify-center flex-shrink-0 transition-transform duration-300 group-hover:scale-105">
+                                @if($bph->hasPhoto())
+                                    <img src="{{ $bph->photo_url }}"
+                                         srcset="{{ $bph->photo_srcset }}"
+                                         sizes="(max-width: 640px) 112px, 128px"
+                                         alt="{{ $bph->name }}, {{ $bph->position }} DPD JULEHA Kabupaten Brebes"
+                                         width="128"
+                                         height="128"
+                                         loading="lazy"
+                                         onerror="this.style.display='none'; if(this.nextElementSibling){ this.nextElementSibling.style.display='flex'; } if(this.closest('.relative').querySelector('.fallback-text')){ this.closest('.relative').querySelector('.fallback-text').style.display='block'; }"
+                                         class="w-full h-full object-cover object-top" />
+                                    <div style="display:none;" class="w-full h-full flex items-center justify-center bg-gradient-to-br from-brand/10 to-brand/20 dark:from-slate-800 dark:to-slate-900 text-brand dark:text-brand-dark font-heading font-black text-2xl sm:text-3xl">
                                         {{ $bph->initials }}
                                     </div>
-                                    <span class="text-[11px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider text-center">Foto Belum Tersedia</span>
-                                </div>
+                                @else
+                                    <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-brand/10 to-brand/20 dark:from-slate-800 dark:to-slate-900 text-brand dark:text-brand-dark font-heading font-black text-2xl sm:text-3xl">
+                                        {{ $bph->initials }}
+                                    </div>
+                                @endif
+                            </div>
+                            @if(! $bph->hasPhoto())
+                                <span class="fallback-text text-[11px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mt-2.5 text-center">Foto Belum Tersedia</span>
                             @else
-                                <div class="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-brand/10 to-brand/20 dark:from-slate-800 dark:to-slate-900 text-brand dark:text-brand-dark p-6">
-                                    <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-white dark:bg-slate-800 shadow-md flex items-center justify-center font-heading font-black text-2xl sm:text-3xl border-2 border-brand/20 dark:border-brand-dark/30 mb-3">
-                                        {{ $bph->initials }}
-                                    </div>
-                                    <span class="text-[11px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider text-center">Foto Belum Tersedia</span>
-                                </div>
+                                <span style="display:none;" class="fallback-text text-[11px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mt-2.5 text-center">Foto Belum Tersedia</span>
                             @endif
                         </div>
 
                         <!-- Info Jabatan & Nama -->
-                        <div class="p-5 sm:p-6 w-full text-center flex flex-col items-center flex-grow justify-center">
+                        <div class="w-full text-center flex flex-col items-center flex-grow justify-center">
                             <!-- Label Jabatan -->
                             <span class="text-xs font-bold uppercase tracking-wider text-brand dark:text-brand-dark bg-brand/10 dark:bg-brand/20 px-3 py-1 rounded-full inline-block mb-2.5">
                                 {{ $bph->position }}
