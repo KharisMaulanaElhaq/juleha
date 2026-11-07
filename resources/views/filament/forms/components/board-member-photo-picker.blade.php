@@ -280,17 +280,25 @@ function boardMemberPhotoPicker(config) {
                     return;
                 }
 
-                // DocsView khusus gambar JPG, PNG, WebP
-                const docsView = new window.google.picker.DocsView(window.google.picker.ViewId.DOCS_IMAGES)
+                // View 1: Telusuri Folder Drive Saya (bisa membuka folder buatan pengguna)
+                const folderView = new window.google.picker.DocsView()
+                    .setIncludeFolders(true)
+                    .setSelectFolderEnabled(false)
                     .setMimeTypes('image/jpeg,image/png,image/webp')
-                    .setMode(window.google.picker.DocsViewMode.LIST);
+                    .setMode(window.google.picker.DocsViewMode.GRID);
+
+                // View 2: Semua Foto (pencarian cepat seluruh gambar di Drive)
+                const allImagesView = new window.google.picker.DocsView(window.google.picker.ViewId.DOCS_IMAGES)
+                    .setMimeTypes('image/jpeg,image/png,image/webp')
+                    .setMode(window.google.picker.DocsViewMode.GRID);
 
                 const builder = new window.google.picker.PickerBuilder()
-                    .addView(docsView)
+                    .addView(folderView)
+                    .addView(allImagesView)
                     .setOAuthToken(accessToken)
                     .setDeveloperKey(this.apiKey)
                     .setLocale('id')
-                    .setTitle('Pilih Foto Profil Pengurus (JPG, PNG, WebP)')
+                    .setTitle('Pilih Foto Profil Pengurus (Buka Folder atau Pilih Foto)')
                     .setCallback(async (data) => {
                         if (data[window.google.picker.Response.ACTION] === window.google.picker.Action.PICKED) {
                             const doc = data[window.google.picker.Response.DOCUMENTS][0];
