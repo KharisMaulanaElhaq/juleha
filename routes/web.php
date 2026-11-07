@@ -393,25 +393,24 @@ Route::get('/jalankan-migrasi', function () {
         . "</div>";
 })->name('artisan.migrate');
 
-// Melayani berkas foto pengurus publik jika symlink public/storage belum ada di server cPanel
-Route::get('storage/board-members/{path}', function (string $path) {
+// Melayani berkas storage publik jika symlink public/storage belum ada di server cPanel
+Route::get('storage/{path}', function (string $path) {
     if (str_contains($path, '..') || str_starts_with($path, '/') || str_starts_with($path, '\\')) {
         abort(404);
     }
 
     $disk = \Illuminate\Support\Facades\Storage::disk('public');
-    $fullPath = 'board-members/' . $path;
-    if (! $disk->exists($fullPath)) {
+    if (! $disk->exists($path)) {
         abort(404);
     }
 
-    $mime = $disk->mimeType($fullPath) ?: 'image/webp';
+    $mime = $disk->mimeType($path) ?: 'application/octet-stream';
 
-    return response($disk->get($fullPath), 200, [
+    return response($disk->get($path), 200, [
         'Content-Type' => $mime,
         'Cache-Control' => 'public, max-age=31536000, immutable',
     ]);
-})->where('path', '.*')->name('storage.board_members_fallback');
+})->where('path', '.*')->name('storage.fallback');
 
 // Backward Compatibility / Redirects
 $redirects = [
