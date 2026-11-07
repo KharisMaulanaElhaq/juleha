@@ -116,19 +116,25 @@ function boardMemberPhotoPicker(config) {
             this.errorMessage = null;
             this.errorDetail = null;
 
-            // Cari input file di container photo upload
             const uploadWrapper = document.querySelector('.board-member-photo-upload');
             const inputEl = uploadWrapper ? uploadWrapper.querySelector('input[type="file"]') : null;
-            if (inputEl) {
-                // Bersihkan berkas lama jika ada agar pengguna leluasa memilih foto baru
-                let pond = window.FilePond ? window.FilePond.find(inputEl) : null;
-                if (pond && typeof pond.removeFiles === 'function' && pond.getFiles().length > 0) {
-                    pond.removeFiles();
-                }
-                inputEl.click();
-            } else {
+            if (!inputEl) {
                 this.showError('Komponen upload foto belum siap.', 'Silakan muat ulang halaman.');
+                return;
             }
+
+            // Bersihkan berkas lama jika ada agar pengguna leluasa memilih foto baru
+            const alpineEl = uploadWrapper.hasAttribute('x-data')
+                ? uploadWrapper
+                : (uploadWrapper.querySelector('[x-data]') || uploadWrapper.closest('[x-data]'));
+            const alpine = (alpineEl && window.Alpine) ? window.Alpine.$data(alpineEl) : null;
+            const pond = alpine?.pond || (window.FilePond ? window.FilePond.find(inputEl) : null);
+
+            if (pond && typeof pond.removeFiles === 'function' && pond.getFiles().length > 0) {
+                pond.removeFiles();
+            }
+
+            inputEl.click();
         },
 
         // Coba aksi terakhir jika terjadi galat
@@ -284,12 +290,11 @@ function boardMemberPhotoPicker(config) {
                 const folderView = new window.google.picker.DocsView()
                     .setIncludeFolders(true)
                     .setSelectFolderEnabled(false)
-                    .setMimeTypes('image/jpeg,image/png,image/webp')
+                    .setMimeTypes('image/jpeg,image/png,image/webp,application/vnd.google-apps.folder')
                     .setMode(window.google.picker.DocsViewMode.GRID);
 
                 // View 2: Semua Foto (pencarian cepat seluruh gambar di Drive)
                 const allImagesView = new window.google.picker.DocsView(window.google.picker.ViewId.DOCS_IMAGES)
-                    .setMimeTypes('image/jpeg,image/png,image/webp')
                     .setMode(window.google.picker.DocsViewMode.GRID);
 
                 const builder = new window.google.picker.PickerBuilder()
@@ -406,36 +411,76 @@ function boardMemberPhotoPicker(config) {
             }
 
             const inputEl = uploadWrapper.querySelector('input[type="file"]');
-            if (!inputEl) {
-                throw new Error('Input unggah foto belum siap.');
+
+            // 1. Cari instance Alpine & FilePond dengan retry jika sedang proses inisialisasi
+            let alpine = null;
+            let pond = null;
+
+            for (let attempt = 0; attempt < 15; attempt++) {
+                const alpineEl = uploadWrapper.hasAttribute('x-data')
+                    ? uploadWrapper
+                    : (uploadWrapper.querySelector('[x-data]') || uploadWrapper.closest('[x-data]'));
+
+                if (alpineEl && window.Alpine) {
+                    alpine = window.Alpine.$data(alpineEl);
+                    if (alpine?.pond) {
+                        pond = alpine.pond;
+                        break;
+                    }
+                }
+
+                if (window.FilePond && inputEl) {
+                    pond = window.FilePond.find(inputEl) || window.FilePond.find(uploadWrapper.querySelector('.filepond--root'));
+                    if (pond) {
+                        break;
+                    }
+                }
+
+                await new Promise((r) => setTimeout(r, 100));
             }
 
-            // Dapatkan instance FilePond
-            let pond = window.FilePond ? window.FilePond.find(inputEl) : null;
-            if (!pond) {
-                // Tunggu 200ms jika FilePond sedang inisialisasi
-                await new Promise((r) => setTimeout(r, 200));
-                pond = window.FilePond ? window.FilePond.find(inputEl) : null;
+            // 2. Jika instance FilePond ditemukan langsung
+            if (pond) {
+                // Bersihkan berkas sebelumnya jika ada
+                if (typeof pond.removeFiles === 'function') {
+                    pond.removeFiles();
+                }
+
+                // Tambahkan file ke FilePond (tangani jika beforeAddFile menahan untuk buka editor)
+                try {
+                    await pond.addFile(file);
+                } catch (addErr) {
+                    console.debug('[GooglePicker] addFile handled by editor:', addErr);
+                }
+
+                // Buka jendela pemotong foto (Cropper) rasio 4:5 jika belum otomatis terbuka
+                if (alpine && typeof alpine.loadEditor === 'function' && !alpine.isEditorOpen) {
+                    alpine.loadEditor(file);
+                }
+                return;
             }
 
-            if (!pond) {
-                throw new Error('Komponen pengunggah foto (FilePond) belum aktif.');
-            }
+            // 3. Fallback: simulasikan event pemilihan file via DataTransfer browser standar
+            if (inputEl && window.DataTransfer) {
+                try {
+                    const dt = new DataTransfer();
+                    dt.items.add(file);
+                    inputEl.files = dt.files;
+                    inputEl.dispatchEvent(new Event('change', { bubbles: true }));
+                    inputEl.dispatchEvent(new Event('input', { bubbles: true }));
 
-            // Bersihkan berkas sebelumnya jika ada
-            pond.removeFiles();
-
-            // Tambahkan file ke FilePond
-            const addedItem = await pond.addFile(file);
-
-            // Buka jendela pemotong foto (Cropper) rasio 4:5 secara langsung
-            const pondAlpineEl = uploadWrapper.querySelector('[x-data]');
-            if (pondAlpineEl && window.Alpine) {
-                const alpineData = window.Alpine.$data(pondAlpineEl);
-                if (alpineData && typeof alpineData.loadEditor === 'function' && !alpineData.isEditorOpen) {
-                    alpineData.loadEditor(file);
+                    // Tunggu sebentar agar FilePond merespons dan buka editor jika belum aktif
+                    await new Promise((r) => setTimeout(r, 300));
+                    if (alpine && typeof alpine.loadEditor === 'function' && !alpine.isEditorOpen) {
+                        alpine.loadEditor(file);
+                    }
+                    return;
+                } catch (dtErr) {
+                    console.warn('[GooglePicker] DataTransfer fallback failed:', dtErr);
                 }
             }
+
+            throw new Error('Komponen pengunggah foto (FilePond) belum aktif. Silakan muat ulang halaman.');
         }
     };
 }
