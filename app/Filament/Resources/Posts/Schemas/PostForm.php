@@ -65,12 +65,13 @@ class PostForm
                                 ->columnSpan(1),
 
                             FileUpload::make('cover')
-                                ->label('Foto Sampul / Gambar Banner')
+                                ->label('Foto Sampul / Gambar Banner Kegiatan')
                                 ->image()
                                 ->imageEditor()
+                                ->disk('public')
                                 ->directory('posts')
-                                ->maxSize(2048)
-                                ->helperText('Unggah foto utama pendukung berita (JPG, PNG, atau WebP, maks. 2MB).')
+                                ->maxSize(4096)
+                                ->helperText('Unggah foto utama/dokumentasi kegiatan pendukung berita (JPG, PNG, atau WebP, maks. 4MB).')
                                 ->columnSpanFull(),
 
                             Textarea::make('summary')

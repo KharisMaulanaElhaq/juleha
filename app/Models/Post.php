@@ -47,4 +47,21 @@ class Post extends Model
                     ->orWhere('published_at', '<=', now());
             });
     }
+
+    public function getCoverUrlAttribute(): ?string
+    {
+        if (empty($this->cover)) {
+            return null;
+        }
+
+        if (str_starts_with($this->cover, 'http://') || str_starts_with($this->cover, 'https://')) {
+            return $this->cover;
+        }
+
+        if (str_starts_with($this->cover, '/')) {
+            return $this->cover;
+        }
+
+        return asset('storage/'.ltrim($this->cover, '/'));
+    }
 }

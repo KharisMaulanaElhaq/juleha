@@ -27,29 +27,42 @@
             <!-- Main News List -->
             <div class="lg:col-span-2 space-y-8">
                 @forelse ($posts as $post)
-                <div class="berita-card p-6 sm:p-8 bg-slate-50 dark:bg-slate-800" data-aos="fade-up">
-                    <div class="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400 mb-3">
-                        <span class="bg-brand-light dark:bg-brand-hero-dark/60 text-brand dark:text-brand-dark font-bold px-2.5 py-0.5 rounded-full">
-                            {{ $post->category ?? 'Warta Halal' }}
-                        </span>
-                        <span>&bull;</span>
-                        <span>{{ $post->published_at ? $post->published_at->translatedFormat('d F Y') : '-' }}</span>
-                        <span>&bull;</span>
-                        <span>{{ $post->author_name ?? 'Admin Juleha' }}</span>
-                    </div>
-
-                    <h2 class="font-heading font-extrabold text-xl sm:text-2xl text-slate-800 dark:text-white mb-3 hover:text-brand dark:hover:text-brand-dark transition-colors">
-                        <a href="{{ route('berita.show', $post->slug) }}">{{ $post->title }}</a>
-                    </h2>
-
-                    <p class="text-slate-600 dark:text-slate-300 text-sm sm:text-base leading-relaxed mb-6">
-                        {{ $post->summary }}
-                    </p>
-
-                    <a href="{{ route('berita.show', $post->slug) }}" class="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-accent dark:text-brand-dark-accent hover:gap-2.5 transition-all">
-                        <span>Baca Artikel Lengkap</span>
-                        <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                <div class="berita-card bg-slate-50 dark:bg-slate-800 overflow-hidden" data-aos="fade-up">
+                    @if ($post->cover_url)
+                    <a href="{{ route('berita.show', $post->slug) }}" class="block aspect-video sm:aspect-[21/9] overflow-hidden bg-slate-200 dark:bg-slate-700">
+                        <img
+                            src="{{ $post->cover_url }}"
+                            alt="{{ $post->title }}"
+                            class="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                            loading="lazy"
+                        />
                     </a>
+                    @endif
+
+                    <div class="p-6 sm:p-8">
+                        <div class="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400 mb-3">
+                            <span class="bg-brand-light dark:bg-brand-hero-dark/60 text-brand dark:text-brand-dark font-bold px-2.5 py-0.5 rounded-full">
+                                {{ $post->category ?? 'Warta Halal' }}
+                            </span>
+                            <span>&bull;</span>
+                            <span>{{ $post->published_at ? $post->published_at->translatedFormat('d F Y') : '-' }}</span>
+                            <span>&bull;</span>
+                            <span>{{ $post->author_name ?? 'Admin Juleha' }}</span>
+                        </div>
+
+                        <h2 class="font-heading font-extrabold text-xl sm:text-2xl text-slate-800 dark:text-white mb-3 hover:text-brand dark:hover:text-brand-dark transition-colors">
+                            <a href="{{ route('berita.show', $post->slug) }}">{{ $post->title }}</a>
+                        </h2>
+
+                        <p class="text-slate-600 dark:text-slate-300 text-sm sm:text-base leading-relaxed mb-6">
+                            {{ $post->summary }}
+                        </p>
+
+                        <a href="{{ route('berita.show', $post->slug) }}" class="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-accent dark:text-brand-dark-accent hover:gap-2.5 transition-all">
+                            <span>Baca Artikel Lengkap</span>
+                            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                        </a>
+                    </div>
                 </div>
                 @empty
                 <div class="text-center py-16 bg-slate-50 dark:bg-slate-800 rounded-3xl p-8 border border-gray-100 dark:border-slate-700">

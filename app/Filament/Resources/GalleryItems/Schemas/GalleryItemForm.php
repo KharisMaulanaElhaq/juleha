@@ -45,6 +45,7 @@ class GalleryItemForm
                                 ->label('Berkas Foto')
                                 ->image()
                                 ->imageEditor()
+                                ->disk('public')
                                 ->directory('gallery')
                                 ->maxSize(4096)
                                 ->helperText('Unggah foto resolusi baik (JPG, PNG, WebP maks. 4MB). Pratinjau akan langsung terlihat.')

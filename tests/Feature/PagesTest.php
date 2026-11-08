@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Post;
 use App\Models\Program;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -88,6 +89,29 @@ class PagesTest extends TestCase
         $response = $this->get('/berita/syarat-sah-penyembelihan-halal');
         $response->assertStatus(200);
         $response->assertSee('Memahami 3 Saluran');
+    }
+
+    public function test_berita_detail_displays_cover_image_when_present(): void
+    {
+        $post = Post::create([
+            'title' => 'Uji Coba Berita Dengan Foto Kegiatan',
+            'slug' => 'uji-coba-berita-dengan-foto-kegiatan',
+            'category' => 'Warta Organisasi',
+            'summary' => 'Ringkasan berita uji coba.',
+            'body' => 'Isi lengkap berita kegiatan.',
+            'cover' => 'posts/kegiatan-penolong.jpg',
+            'author_name' => 'Redaksi Juleha',
+            'is_published' => true,
+            'published_at' => now(),
+        ]);
+
+        $response = $this->get('/berita/'.$post->slug);
+        $response->assertStatus(200);
+        $response->assertSee('posts/kegiatan-penolong.jpg');
+
+        $listResponse = $this->get('/berita');
+        $listResponse->assertStatus(200);
+        $listResponse->assertSee('posts/kegiatan-penolong.jpg');
     }
 
     public function test_galeri_page_loads_successfully(): void

@@ -24,6 +24,17 @@
 <!-- ===================== KONTEN ARTIKEL ===================== -->
 <section class="section-padding bg-white dark:bg-slate-900">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        @if ($post->cover_url)
+        <div class="mb-8 sm:mb-10 rounded-2xl sm:rounded-3xl overflow-hidden shadow-lg border border-gray-100 dark:border-slate-800 bg-slate-100 dark:bg-slate-800">
+            <img
+                src="{{ $post->cover_url }}"
+                alt="{{ $post->title }}"
+                class="w-full h-auto max-h-[520px] object-cover object-center"
+                loading="eager"
+            />
+        </div>
+        @endif
+
         <div class="prose dark:prose-invert max-w-none text-slate-700 dark:text-slate-300 text-base sm:text-lg leading-relaxed space-y-6">
             {!! nl2br(e($post->body ?? $post->content)) !!}
         </div>
@@ -61,15 +72,22 @@
             <h3 class="font-heading font-extrabold text-2xl text-slate-800 dark:text-white mb-6">Artikel Terkait</h3>
             <div class="grid sm:grid-cols-3 gap-6">
                 @foreach ($related as $rel)
-                <div class="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-gray-100 dark:border-slate-700">
-                    <span class="text-xs font-bold text-brand dark:text-brand-dark block mb-2">{{ $rel->category }}</span>
-                    <h5 class="font-heading font-bold text-sm text-slate-800 dark:text-white line-clamp-2 hover:text-brand dark:hover:text-brand-dark transition-colors mb-2">
-                        <a href="{{ route('berita.show', $rel->slug) }}">{{ $rel->title }}</a>
-                    </h5>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 mb-3">{{ $rel->summary }}</p>
-                    <a href="{{ route('berita.show', $rel->slug) }}" class="text-xs font-semibold text-brand-accent dark:text-brand-dark-accent flex items-center gap-1">
-                        Baca <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                <div class="rounded-2xl bg-slate-50 dark:bg-slate-800 border border-gray-100 dark:border-slate-700 overflow-hidden flex flex-col">
+                    @if ($rel->cover_url)
+                    <a href="{{ route('berita.show', $rel->slug) }}" class="block aspect-video overflow-hidden bg-slate-200 dark:bg-slate-700">
+                        <img src="{{ $rel->cover_url }}" alt="{{ $rel->title }}" class="w-full h-full object-cover hover:scale-105 transition-transform duration-300" loading="lazy" />
                     </a>
+                    @endif
+                    <div class="p-5 flex flex-col flex-1">
+                        <span class="text-xs font-bold text-brand dark:text-brand-dark block mb-2">{{ $rel->category }}</span>
+                        <h5 class="font-heading font-bold text-sm text-slate-800 dark:text-white line-clamp-2 hover:text-brand dark:hover:text-brand-dark transition-colors mb-2">
+                            <a href="{{ route('berita.show', $rel->slug) }}">{{ $rel->title }}</a>
+                        </h5>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 mb-3">{{ $rel->summary }}</p>
+                        <a href="{{ route('berita.show', $rel->slug) }}" class="mt-auto text-xs font-semibold text-brand-accent dark:text-brand-dark-accent flex items-center gap-1">
+                            Baca <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                        </a>
+                    </div>
                 </div>
                 @endforeach
             </div>

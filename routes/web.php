@@ -22,7 +22,9 @@ use App\Models\GalleryItem;
 use App\Models\Post;
 use App\Models\Program;
 use App\Models\Setting;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 
 /*
 |--------------------------------------------------------------------------
@@ -343,19 +345,19 @@ Route::post('/hak-data', [DataRequestController::class, 'store'])->middleware('t
 
 // Eksekusi Migrasi Database & Pembersihan Cache
 Route::get('/jalankan-migrasi', function () {
-    \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
-    $out = \Illuminate\Support\Facades\Artisan::output();
+    Artisan::call('migrate', ['--force' => true]);
+    $out = Artisan::output();
 
     $storageLink = 'Lewati';
     try {
-        \Illuminate\Support\Facades\Artisan::call('storage:link');
-        $storageLink = \Illuminate\Support\Facades\Artisan::output();
-    } catch (\Throwable $e) {
-        $storageLink = 'Galat: ' . $e->getMessage();
+        Artisan::call('storage:link');
+        $storageLink = Artisan::output();
+    } catch (Throwable $e) {
+        $storageLink = 'Galat: '.$e->getMessage();
     }
 
-    \Illuminate\Support\Facades\Artisan::call('optimize:clear');
-    $clear = \Illuminate\Support\Facades\Artisan::output();
+    Artisan::call('optimize:clear');
+    $clear = Artisan::output();
 
     $opcacheStatus = 'Tidak Aktif / Tidak Didukung';
     if (function_exists('opcache_reset')) {
@@ -374,23 +376,23 @@ Route::get('/jalankan-migrasi', function () {
         $hasGoogleDrive = str_contains($content, 'board-member-photo-picker');
     }
 
-    $checkBadge = $hasGoogleDrive 
-        ? "<span style='background:#059669;color:#fff;padding:4px 10px;border-radius:6px;font-weight:bold;'>SIAP: Fitur Google Picker & Dua Tombol Ditemukan ($boardFormSize bytes, $boardFormMtime)</span>" 
+    $checkBadge = $hasGoogleDrive
+        ? "<span style='background:#059669;color:#fff;padding:4px 10px;border-radius:6px;font-weight:bold;'>SIAP: Fitur Google Picker & Dua Tombol Ditemukan ($boardFormSize bytes, $boardFormMtime)</span>"
         : "<span style='background:#dc2626;color:#fff;padding:4px 10px;border-radius:6px;font-weight:bold;'>BELUM: File BoardMemberForm masih versi lama ($boardFormSize bytes, $boardFormMtime)</span>";
 
     return "<div style='font-family:sans-serif;max-width:680px;margin:40px auto;padding:28px;background:#ffffff;border:1px solid #cbd5e1;border-radius:16px;box-shadow:0 10px 25px rgba(0,0,0,0.05);'>"
-        . "<h2 style='color:#059669;margin-top:0;'>DPD JULEHA Brebes - Status Sistem & Migrasi</h2>"
-        . "<div style='margin-bottom:18px;padding:12px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;'>"
-        . "<strong>Status Kode BoardMemberForm:</strong><br><br>" . $checkBadge . "<br><br>"
-        . "<strong>Status PHP OPcache:</strong> " . htmlspecialchars($opcacheStatus) . "<br>"
-        . "<strong>Tautan Penyimpanan (Storage Link):</strong> " . htmlspecialchars($storageLink) . "<br>"
-        . "</div>"
-        . "<h4 style='color:#334155;margin-bottom:6px;'>Hasil Migrasi:</h4>"
-        . "<pre style='background:#0f172a;color:#38bdf8;padding:16px;border-radius:10px;font-size:13px;'>" . htmlspecialchars($out ?: 'Database sudah versi terbaru.') . "</pre>"
-        . "<h4 style='color:#334155;margin-bottom:6px;'>Pembersihan Cache:</h4>"
-        . "<pre style='background:#0f172a;color:#4ade80;padding:16px;border-radius:10px;font-size:13px;'>" . htmlspecialchars($clear) . "</pre>"
-        . "<p style='color:#059669;font-weight:bold;margin-top:20px;'><a href='/admin/board-members' style='color:#4f46e5;text-decoration:none;'>&larr; Buka Admin Board Members</a></p>"
-        . "</div>";
+        ."<h2 style='color:#059669;margin-top:0;'>DPD JULEHA Brebes - Status Sistem & Migrasi</h2>"
+        ."<div style='margin-bottom:18px;padding:12px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;'>"
+        .'<strong>Status Kode BoardMemberForm:</strong><br><br>'.$checkBadge.'<br><br>'
+        .'<strong>Status PHP OPcache:</strong> '.htmlspecialchars($opcacheStatus).'<br>'
+        .'<strong>Tautan Penyimpanan (Storage Link):</strong> '.htmlspecialchars($storageLink).'<br>'
+        .'</div>'
+        ."<h4 style='color:#334155;margin-bottom:6px;'>Hasil Migrasi:</h4>"
+        ."<pre style='background:#0f172a;color:#38bdf8;padding:16px;border-radius:10px;font-size:13px;'>".htmlspecialchars($out ?: 'Database sudah versi terbaru.').'</pre>'
+        ."<h4 style='color:#334155;margin-bottom:6px;'>Pembersihan Cache:</h4>"
+        ."<pre style='background:#0f172a;color:#4ade80;padding:16px;border-radius:10px;font-size:13px;'>".htmlspecialchars($clear).'</pre>'
+        ."<p style='color:#059669;font-weight:bold;margin-top:20px;'><a href='/admin/board-members' style='color:#4f46e5;text-decoration:none;'>&larr; Buka Admin Board Members</a></p>"
+        .'</div>';
 })->name('artisan.migrate');
 
 // Melayani berkas storage publik jika symlink public/storage belum ada di server cPanel
@@ -399,14 +401,21 @@ Route::get('storage/{path}', function (string $path) {
         abort(404);
     }
 
-    $disk = \Illuminate\Support\Facades\Storage::disk('public');
-    if (! $disk->exists($path)) {
-        abort(404);
+    $disk = Storage::disk('public');
+    if ($disk->exists($path)) {
+        $content = $disk->get($path);
+        $mime = $disk->mimeType($path) ?: 'application/octet-stream';
+    } else {
+        $localDisk = Storage::disk('local');
+        if ($localDisk->exists($path)) {
+            $content = $localDisk->get($path);
+            $mime = $localDisk->mimeType($path) ?: 'application/octet-stream';
+        } else {
+            abort(404);
+        }
     }
 
-    $mime = $disk->mimeType($path) ?: 'application/octet-stream';
-
-    return response($disk->get($path), 200, [
+    return response($content, 200, [
         'Content-Type' => $mime,
         'Cache-Control' => 'public, max-age=31536000, immutable',
     ]);

@@ -84,6 +84,7 @@ class ProgramForm
                             FileUpload::make('image')
                                 ->label('Foto / Banner Program (Opsional)')
                                 ->image()
+                                ->disk('public')
                                 ->directory('programs')
                                 ->maxSize(2048)
                                 ->helperText('Gambar dokumentasi kegiatan (JPG, PNG, WebP, maks. 2MB).')
