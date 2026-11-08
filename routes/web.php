@@ -380,6 +380,8 @@ Route::get('/jalankan-migrasi', function () {
         ? "<span style='background:#059669;color:#fff;padding:4px 10px;border-radius:6px;font-weight:bold;'>SIAP: Fitur Google Picker & Dua Tombol Ditemukan ($boardFormSize bytes, $boardFormMtime)</span>"
         : "<span style='background:#dc2626;color:#fff;padding:4px 10px;border-radius:6px;font-weight:bold;'>BELUM: File BoardMemberForm masih versi lama ($boardFormSize bytes, $boardFormMtime)</span>";
 
+    $postsDebug = \App\Models\Post::latest('id')->take(3)->get(['id', 'title', 'slug', 'cover'])->toArray();
+
     return "<div style='font-family:sans-serif;max-width:680px;margin:40px auto;padding:28px;background:#ffffff;border:1px solid #cbd5e1;border-radius:16px;box-shadow:0 10px 25px rgba(0,0,0,0.05);'>"
         ."<h2 style='color:#059669;margin-top:0;'>DPD JULEHA Brebes - Status Sistem & Migrasi</h2>"
         ."<div style='margin-bottom:18px;padding:12px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;'>"
@@ -387,6 +389,8 @@ Route::get('/jalankan-migrasi', function () {
         .'<strong>Status PHP OPcache:</strong> '.htmlspecialchars($opcacheStatus).'<br>'
         .'<strong>Tautan Penyimpanan (Storage Link):</strong> '.htmlspecialchars($storageLink).'<br>'
         .'</div>'
+        ."<h4 style='color:#334155;margin-bottom:6px;'>Data 3 Berita Terakhir di Database:</h4>"
+        ."<pre style='background:#0f172a;color:#fbbf24;padding:16px;border-radius:10px;font-size:13px;overflow-x:auto;'>".htmlspecialchars(json_encode($postsDebug, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)).'</pre>'
         ."<h4 style='color:#334155;margin-bottom:6px;'>Hasil Migrasi:</h4>"
         ."<pre style='background:#0f172a;color:#38bdf8;padding:16px;border-radius:10px;font-size:13px;'>".htmlspecialchars($out ?: 'Database sudah versi terbaru.').'</pre>'
         ."<h4 style='color:#334155;margin-bottom:6px;'>Pembersihan Cache:</h4>"
