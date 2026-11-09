@@ -107,7 +107,7 @@
             <div class="hidden lg:flex justify-center relative" data-aos="fade-left" data-aos-delay="200">
                 <div class="relative w-full max-w-md">
                     <!-- Geometric Illustration Box -->
-                    <div class="bg-gradient-to-br from-brand-hero/70 to-slate-950 p-8 rounded-3xl border border-white/15 shadow-2xl backdrop-blur-md">
+                    <div class="bg-gradient-to-br from-brand-hero/70 to-slate-950 p-8 pb-16 rounded-3xl border border-white/15 shadow-2xl backdrop-blur-md">
                         <div class="w-16 h-16 rounded-2xl bg-brand-accent flex items-center justify-center mb-6 shadow-lg shadow-brand-accent/30">
                             <i data-lucide="shield-check" class="w-8 h-8 text-slate-900"></i>
                         </div>
@@ -146,7 +146,7 @@
                         </div>
                     </div>
 
-                    <div class="absolute -bottom-5 -right-6 bg-white dark:bg-slate-800 rounded-xl px-4 py-3 shadow-xl border border-gray-100 dark:border-slate-700 flex items-center gap-3">
+                    <div class="absolute -bottom-6 -right-6 bg-white dark:bg-slate-800 rounded-xl px-4 py-3 shadow-xl border border-gray-100 dark:border-slate-700 flex items-center gap-3">
                         <div class="w-9 h-9 bg-brand-accent-light dark:bg-brand-accent/15 rounded-lg flex items-center justify-center">
                             <i data-lucide="calendar" class="w-5 h-5 text-brand-accent dark:text-brand-dark-accent"></i>
                         </div>

@@ -429,10 +429,24 @@ Route::get('storage/{path}', function (string $path) {
 Route::get('assets/lucide.min.js', function () {
     $path = public_path('assets/lucide.min.js');
     if (file_exists($path)) {
-        return response()->file($path, [
-            'Content-Type' => 'application/javascript',
-            'Cache-Control' => 'public, max-age=31536000, immutable',
-        ]);
+        if (is_readable($path)) {
+            try {
+                return response()->file($path, [
+                    'Content-Type' => 'application/javascript',
+                    'Cache-Control' => 'public, max-age=31536000, immutable',
+                ]);
+            } catch (Throwable) {
+                // Lanjutkan ke fallback file_get_contents
+            }
+        }
+
+        $content = @file_get_contents($path);
+        if ($content !== false) {
+            return response($content, 200, [
+                'Content-Type' => 'application/javascript',
+                'Cache-Control' => 'public, max-age=31536000, immutable',
+            ]);
+        }
     }
 
     return redirect('https://unpkg.com/lucide@latest/dist/umd/lucide.min.js', 302);
