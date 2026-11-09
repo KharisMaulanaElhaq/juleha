@@ -16,8 +16,13 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
-    <!-- Lucide Icons (Self-Hosted) -->
+    <!-- Lucide Icons (Self-Hosted with CDN Fallback) -->
     <script src="{{ asset('assets/lucide.min.js') }}"></script>
+    <script>
+        if (!window.lucide) {
+            document.write('<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"><\/script>');
+        }
+    </script>
 
     <!-- Theme Initialization Script -->
     <script>
@@ -317,11 +322,16 @@
 
     <!-- Lucide Icon Renderer -->
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            if (window.lucide) {
+        function initLucideIcons() {
+            if (window.lucide && typeof window.lucide.createIcons === 'function') {
                 window.lucide.createIcons();
             }
-        });
+        }
+        document.addEventListener('DOMContentLoaded', initLucideIcons);
+        window.addEventListener('load', initLucideIcons);
+        if (document.readyState === 'interactive' || document.readyState === 'complete') {
+            initLucideIcons();
+        }
     </script>
     @stack('scripts')
 </body>

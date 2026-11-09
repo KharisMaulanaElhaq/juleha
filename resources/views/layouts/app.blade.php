@@ -58,8 +58,13 @@
     <!-- AOS CSS -->
     <link rel="stylesheet" href="{{ asset('assets/aos.css') }}" />
 
-    <!-- Lucide Icons (Self-Hosted) -->
+    <!-- Lucide Icons (Self-Hosted with CDN Fallback) -->
     <script src="{{ asset('assets/lucide.min.js') }}"></script>
+    <script>
+        if (!window.lucide) {
+            document.write('<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"><\/script>');
+        }
+    </script>
 
     <!-- Theme & Font Size Initialization Script -->
     <script>
@@ -186,11 +191,16 @@
     <!-- ===================== SCRIPTS ===================== -->
     <script src="{{ asset('assets/aos.js') }}"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            if (window.lucide) {
+        function initLucideIcons() {
+            if (window.lucide && typeof window.lucide.createIcons === 'function') {
                 window.lucide.createIcons();
             }
-        });
+        }
+        document.addEventListener('DOMContentLoaded', initLucideIcons);
+        window.addEventListener('load', initLucideIcons);
+        if (document.readyState === 'interactive' || document.readyState === 'complete') {
+            initLucideIcons();
+        }
     </script>
     @stack('scripts')
 </body>

@@ -136,6 +136,12 @@ class PagesTest extends TestCase
         $response->assertSee('Sekretariat');
     }
 
+    public function test_lucide_asset_route_is_accessible_or_redirects(): void
+    {
+        $response = $this->get('/assets/lucide.min.js');
+        $this->assertTrue(in_array($response->getStatusCode(), [200, 302], true));
+    }
+
     public function test_kebijakan_privasi_page_loads_successfully(): void
     {
         $response = $this->get('/kebijakan-privasi');

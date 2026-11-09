@@ -380,7 +380,7 @@ Route::get('/jalankan-migrasi', function () {
         ? "<span style='background:#059669;color:#fff;padding:4px 10px;border-radius:6px;font-weight:bold;'>SIAP: Fitur Google Picker & Dua Tombol Ditemukan ($boardFormSize bytes, $boardFormMtime)</span>"
         : "<span style='background:#dc2626;color:#fff;padding:4px 10px;border-radius:6px;font-weight:bold;'>BELUM: File BoardMemberForm masih versi lama ($boardFormSize bytes, $boardFormMtime)</span>";
 
-    $postsDebug = \App\Models\Post::latest('id')->take(3)->get(['id', 'title', 'slug', 'cover'])->toArray();
+    $postsDebug = Post::latest('id')->take(3)->get(['id', 'title', 'slug', 'cover'])->toArray();
 
     return "<div style='font-family:sans-serif;max-width:680px;margin:40px auto;padding:28px;background:#ffffff;border:1px solid #cbd5e1;border-radius:16px;box-shadow:0 10px 25px rgba(0,0,0,0.05);'>"
         ."<h2 style='color:#059669;margin-top:0;'>DPD JULEHA Brebes - Status Sistem & Migrasi</h2>"
@@ -424,6 +424,19 @@ Route::get('storage/{path}', function (string $path) {
         'Cache-Control' => 'public, max-age=31536000, immutable',
     ]);
 })->where('path', '.*')->name('storage.fallback');
+
+// Melayani berkas assets/lucide.min.js jika berkas fisik belum terunggah ke public/assets
+Route::get('assets/lucide.min.js', function () {
+    $path = public_path('assets/lucide.min.js');
+    if (file_exists($path)) {
+        return response()->file($path, [
+            'Content-Type' => 'application/javascript',
+            'Cache-Control' => 'public, max-age=31536000, immutable',
+        ]);
+    }
+
+    return redirect('https://unpkg.com/lucide@latest/dist/umd/lucide.min.js', 302);
+});
 
 // Backward Compatibility / Redirects
 $redirects = [
